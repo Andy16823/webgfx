@@ -16,9 +16,13 @@ export class MyRenderer implements Renderer {
     private pipeline: GPURenderPipeline | null = null;
     private uniformBindGroup: GPUBindGroup | null = null;
     private cameraBindGroup: GPUBindGroup | null = null;
+    private texture: GPUTexture | null = null;
+    private textureView: GPUTextureView | null = null;
+    private sampler: GPUSampler | null = null;
+    private samplerBindGroup: GPUBindGroup | null = null;
 
 
-    initialize(gfx: WebGFX): void {
+    async initialize(gfx: WebGFX): Promise<void> {
         console.log("WebGFX initialized:", gfx);
 
         // Set up camera and transform
@@ -28,9 +32,10 @@ export class MyRenderer implements Renderer {
 
         // Create vertex buffer
         const vertices = new Float32Array([
-            0.0, 0.5,   // Vertex 1: Top
-            -0.5, -0.5, // Vertex 2: Bottom Left
-            0.5, -0.5   // Vertex 3: Bottom Right
+            -0.5, 0.5, 0.0, 0.0,  // Vertex 1: Top Left
+            0.5, 0.5, 1.0, 0.0,   // Vertex 2: Top Right
+            0.5, -0.5, 1.0, 1.0,  // Vertex 3: Bottom Right
+            -0.5, -0.5, 0.0, 1.0, // Vertex 4: Bottom Left
         ]);
 
         this.vertexBuffer = gfx.device.createBuffer({
@@ -40,7 +45,7 @@ export class MyRenderer implements Renderer {
         gfx.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
 
         // Create index buffer
-        const indices = new Uint32Array([0, 1, 2]);
+        const indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
         this.indexBuffer = gfx.device.createBuffer({
             size: indices.byteLength,
             usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST
@@ -90,12 +95,18 @@ export class MyRenderer implements Renderer {
                 module: shaderModule,
                 entryPoint: 'vs_main',
                 buffers: [{
-                    arrayStride: 2 * 4, // 2 floats per vertex, 4 bytes per float
+                    arrayStride: 4 * 4, // 4 floats per vertex, 4 bytes per float
                     attributes: [{
                         shaderLocation: 0,
                         offset: 0,
                         format: 'float32x2',
-                    }],
+                    },
+                    {
+                        shaderLocation: 1,
+                        offset: 2 * 4,
+                        format: 'float32x2',
+                    }
+                    ],
                 }],
             },
             fragment: {
@@ -135,9 +146,46 @@ export class MyRenderer implements Renderer {
                 }
             ]
         });
+
+        const image = new Image();
+        image.src = '/pmr_logo.png';
+        await image.decode();
+
+        this.texture = gfx.device.createTexture({
+            size: [image.width, image.height],
+            format: 'rgba8unorm',
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+        });
+
+        gfx.device.queue.copyExternalImageToTexture(
+            { source: image },
+            { texture: this.texture },
+            [image.width, image.height]
+        );
+
+        this.textureView = this.texture.createView();
+        this.sampler = gfx.device.createSampler({
+            magFilter: 'linear',
+            minFilter: 'linear',
+        });
+
+        this.samplerBindGroup = gfx.device.createBindGroup({
+            layout: this.pipeline.getBindGroupLayout(2),
+            entries: [
+                {
+                    binding: 0,
+                    resource: this.textureView
+                },
+                {
+                    binding: 1,
+                    resource: this.sampler
+                }
+            ]
+        });
     }
+
     render(gfx: WebGFX, pass: GPURenderPassEncoder): void {
-        if (!this.pipeline || !this.vertexBuffer || !this.indexBuffer || !this.uniformBindGroup || !this.cameraBindGroup) {
+        if (!this.pipeline || !this.vertexBuffer || !this.indexBuffer || !this.uniformBindGroup || !this.cameraBindGroup || !this.samplerBindGroup) {
             console.error("Pipeline or buffers are not initialized.");
             return;
         }
@@ -146,7 +194,8 @@ export class MyRenderer implements Renderer {
         pass.setIndexBuffer(this.indexBuffer, 'uint32');
         pass.setBindGroup(0, this.uniformBindGroup);
         pass.setBindGroup(1, this.cameraBindGroup);
-        pass.drawIndexed(3);
+        pass.setBindGroup(2, this.samplerBindGroup);
+        pass.drawIndexed(6);
     }
 
     dispose(gfx: WebGFX): void {

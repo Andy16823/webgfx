@@ -26,7 +26,7 @@ export default function Viewport({ renderer, width = 800, height = 600, fpsTarge
         const init = async () => {
             const gfx = await WebGFX.create(canvas);
             if (renderer) {
-                renderer.initialize(gfx);
+                await renderer.initialize(gfx);
             }
 
             const loop = () => {
