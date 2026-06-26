@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import Viewport from "@/Viewport";
+import Viewport from "@/core/components/Viewport";
 import { WebGFX } from "@/core/WebGFX";
 import { defaultShader } from "./shader/Shaders";
 import PipelineBuilder from "@/core/PipelineBuilder";
