@@ -7,7 +7,7 @@ import { WebGFX } from '@/core/WebGFX';
 import { defaultShader } from '@/app/shader/Shaders';
 
 interface ViewportProps {
-    renderer?: Renderer;
+    renderer: Renderer;
     width?: number;
     height?: number;
     fpsTarget?: number | null;
@@ -25,9 +25,7 @@ export default function Viewport({ renderer, width = 800, height = 600, fpsTarge
 
         const init = async () => {
             const gfx = await WebGFX.create(canvas);
-            if (renderer) {
-                await renderer.initialize(gfx);
-            }
+            await renderer.initialize(gfx);
 
             const loop = () => {
                 const now = performance.now();
@@ -44,11 +42,11 @@ export default function Viewport({ renderer, width = 800, height = 600, fpsTarge
                 // Update
                 const deltaTime = (now - lastFrameTime) / 1000;
                 lastFrameTime = now;
-                renderer?.update(gfx, deltaTime);
+                renderer.update(gfx, deltaTime);
 
                 // Render
                 const { encoder, renderPass } = gfx.beginFrame();
-                renderer?.render(gfx, renderPass);
+                renderer.render(gfx, renderPass);
                 gfx.endFrame(encoder, renderPass);
                 
                 // Request the next frame
