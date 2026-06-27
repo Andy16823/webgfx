@@ -2,15 +2,26 @@ import Texture from "@/core/Texture";
 import { WebGFX } from "./WebGFX";
 
 /**
+ * Interface representing a material in the WebGFX framework.
+ * A material defines how a mesh is rendered, including its textures and properties.
+ */
+export interface MaterialInterface {
+    createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
+    bindMaterial(pass: GPURenderPassEncoder, groupIndex: number): void;
+    destroy(): void;
+}
+
+/**
  * Class representing a material in the WebGFX framework.
  */
-export default class Material {
+export default class Material implements MaterialInterface {
     name: string;
     albedoTexture: Texture | null;
     normalTexture: Texture | null;
     metallicRoughnessTexture: Texture | null;
 
     private materialBindGroup: GPUBindGroup | null = null;
+    private groupIndex: number | null = null;
 
     /**
      * Creates an instance of Material with the specified name.
@@ -25,12 +36,15 @@ export default class Material {
 
     /**
      * Creates bind groups for the material's textures and associates them with the specified pipeline and group index.
+     * The material creates a single bind group that contains the albedo, normal, and metallic-roughness textures along with their samplers.
+     * For custom binding groups you can create your own bind group and bind it in the render pass.
      * @param gfx - The WebGFX instance used to create the bind groups.
      * @param pipeline - The GPURenderPipeline to which the bind groups will be associated.
      * @param groupIndex - The index of the bind group layout in the pipeline.
      */
     createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void {
         console.log(`Creating bind groups for material: ${this.name}`);
+        this.groupIndex = groupIndex;
         if (this.albedoTexture && this.normalTexture && this.metallicRoughnessTexture) {
             this.materialBindGroup = gfx.device.createBindGroup({
                 layout: pipeline.getBindGroupLayout(groupIndex),
@@ -67,11 +81,10 @@ export default class Material {
     /**
      * Binds the material's bind group to the specified render pass encoder and group index.
      * @param pass - The GPURenderPassEncoder to which the bind group will be bound.
-     * @param groupIndex - The index of the bind group layout in the pipeline.
      */
-    bindMaterial(pass: GPURenderPassEncoder, groupIndex: number): void {
-        if (this.materialBindGroup) {
-            pass.setBindGroup(groupIndex, this.materialBindGroup);
+    bindMaterial(pass: GPURenderPassEncoder): void {
+        if (this.materialBindGroup && this.groupIndex !== null) {
+            pass.setBindGroup(this.groupIndex, this.materialBindGroup);
         }
     }
 

@@ -108,7 +108,7 @@ export class Scene3D implements Scene {
         this.model.meshes.forEach(mesh => {
             const material = this.model?.materials[mesh.getMaterialIndex()];
             if (material) {
-                material.bindMaterial(pass, 1);
+                material.bindMaterial(pass);
             }
             pass.setVertexBuffer(0, mesh.getVertexBuffer()?.buffer!);
             pass.setIndexBuffer(mesh.getIndexBuffer()?.buffer!, 'uint16');
