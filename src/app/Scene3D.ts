@@ -52,11 +52,19 @@ export class Scene3D implements Scene {
                 module: shaderModule,
                 entryPoint: 'vs_main',
                 buffers: [{
-                    arrayStride: 4 * 3, // 3 floats per vertex, 4 bytes per float
+                    arrayStride: 4 * 8, // 3 floats for position, 3 floats for normal, 2 floats for UV, 4 bytes per float
                     attributes: [{
                         shaderLocation: 0,
                         offset: 0,
                         format: 'float32x3',
+                    }, {
+                        shaderLocation: 1,
+                        offset: 4 * 3,
+                        format: 'float32x3',
+                    }, {
+                        shaderLocation: 2,
+                        offset: 4 * 6,
+                        format: 'float32x2',
                     }],
                 }],
             },
@@ -87,6 +95,8 @@ export class Scene3D implements Scene {
                 }
             ]
         });
+
+        this.model?.createBindGroups(gfx, this.pipeline, 1);
     }
 
     render(gfx: WebGFX, pass: GPURenderPassEncoder): void {
@@ -96,6 +106,10 @@ export class Scene3D implements Scene {
         }
         pass.setPipeline(this.pipeline);
         this.model.meshes.forEach(mesh => {
+            const material = this.model?.materials[mesh.getMaterialIndex()];
+            if (material) {
+                material.bindMaterial(pass, 1);
+            }
             pass.setVertexBuffer(0, mesh.getVertexBuffer()?.buffer!);
             pass.setIndexBuffer(mesh.getIndexBuffer()?.buffer!, 'uint16');
             pass.setBindGroup(0, this.cameraBindGroup!);

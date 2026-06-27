@@ -18,6 +18,23 @@
 			"name":"Suzanne"
 		}
 	],
+	"materials":[
+		{
+			"doubleSided":true,
+			"name":"Material.001",
+			"normalTexture":{
+				"index":0
+			},
+			"pbrMetallicRoughness":{
+				"baseColorTexture":{
+					"index":1
+				},
+				"metallicRoughnessTexture":{
+					"index":2
+				}
+			}
+		}
+	],
 	"meshes":[
 		{
 			"name":"Suzanne",
@@ -28,9 +45,41 @@
 						"NORMAL":1,
 						"TEXCOORD_0":2
 					},
-					"indices":3
+					"indices":3,
+					"material":0
 				}
 			]
+		}
+	],
+	"textures":[
+		{
+			"sampler":0,
+			"source":0
+		},
+		{
+			"sampler":0,
+			"source":1
+		},
+		{
+			"sampler":0,
+			"source":2
+		}
+	],
+	"images":[
+		{
+			"mimeType":"image/jpeg",
+			"name":"Metal048B_2K-JPG_NormalGL",
+			"uri":"textures/Metal048B_2K-JPG_NormalGL.jpg"
+		},
+		{
+			"mimeType":"image/jpeg",
+			"name":"Metal048B_2K-JPG_Color",
+			"uri":"textures/Metal048B_2K-JPG_Color.jpg"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"Metal048B_2K-JPG_Metalness-Metal048B_2K-JPG_Roughness",
+			"uri":"textures/Metal048B_2K-JPG_Metalness-Metal048B_2K-JPG_Roughness.png"
 		}
 	],
 	"accessors":[
@@ -93,6 +142,12 @@
 			"byteLength":5808,
 			"byteOffset":62912,
 			"target":34963
+		}
+	],
+	"samplers":[
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[

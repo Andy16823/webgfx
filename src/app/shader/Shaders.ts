@@ -63,11 +63,15 @@ export function meshShader(): string {
     return `
 
     struct VertexInput {
-        @location(0) position: vec3f
+        @location(0) position: vec3f,
+        @location(1) normal: vec3f,
+        @location(2) uv: vec2f,
     }
     
     struct VertexOutput {
-        @builtin(position) position: vec4f
+        @builtin(position) position: vec4f,
+        @location(0) normal: vec3f,
+        @location(1) uv: vec2f
     }
 
     struct CameraUniforms {
@@ -85,6 +89,24 @@ export function meshShader(): string {
     @group(0) @binding(1)
     var<uniform> modelUniforms: ModelUniforms;
 
+    @group(1) @binding(0)
+    var albedoTexture: texture_2d<f32>;
+
+    @group(1) @binding(1)
+    var albedoSampler: sampler;
+
+    @group(1) @binding(2)
+    var normalTexture: texture_2d<f32>;
+
+    @group(1) @binding(3)
+    var normalSampler: sampler;
+
+    @group(1) @binding(4)
+    var metallicRoughnessTexture: texture_2d<f32>;
+
+    @group(1) @binding(5)
+    var metallicRoughnessSampler: sampler;
+
     @vertex
     fn vs_main(input: VertexInput) -> VertexOutput {
         var output: VertexOutput;
@@ -92,12 +114,17 @@ export function meshShader(): string {
 
         let pos = input.position;
         output.position = mvp * vec4f(pos, 1.0);
+        output.normal = input.normal;
+        output.uv = input.uv;
         return output;
     }
 
     @fragment
-    fn fs_main() -> @location(0) vec4f {
-        return vec4f(1.0, 1.0, 1.0, 1.0);
+    fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+        let albedoColor = textureSample(albedoTexture, albedoSampler, input.uv);
+        let normalColor = textureSample(normalTexture, normalSampler, input.uv);
+        let metallicRoughnessColor = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);
+        return normalColor;
     }
     `;
 }

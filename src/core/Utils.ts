@@ -1,4 +1,6 @@
 import {vec3, quat, mat4} from 'gl-matrix';
+import { WebGFX } from './WebGFX';
+import Texture from './Texture';
 
 /**
  * Converts degrees to radians.
@@ -50,4 +52,16 @@ export function getParentPath(path: string): string {
         return '';
     }
     return path.substring(0, lastSlashIndex);
+}
+
+export function getDefaultAlbedoColor(): [number, number, number, number] {
+    return [255, 255, 255, 255]; // White color in RGBA format
+}
+
+export function getDefaultNormalColor(): [number, number, number, number] {
+    return [128, 128, 255, 255]; // Default normal map color in RGBA format
+}
+
+export function getDefaultMetallicRoughnessColor(): [number, number, number, number] {
+    return [255, 255, 255, 255]; // Default metallic-roughness map color in RGBA format
 }

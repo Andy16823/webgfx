@@ -128,7 +128,7 @@ export class Scene2D implements Scene {
         image.src = '/pmr_logo.png';
         await image.decode();
 
-        this.texture = new Texture(gfx, image);
+        this.texture = Texture.fromImage(gfx, image);
 
         this.samplerBindGroup = gfx.device.createBindGroup({
             layout: this.pipeline.getBindGroupLayout(2),
@@ -165,7 +165,7 @@ export class Scene2D implements Scene {
         this.uniformBuffer?.destroy();
         this.cameraUniformBuffer?.destroy();
         this.modelUniformBuffer?.destroy();
-        this.texture?.dispose();
+        this.texture?.destroy();
     }
 
     update(gfx: WebGFX, deltaTime: number): void {

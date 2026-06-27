@@ -9,6 +9,7 @@ export default class Mesh {
     private vertexBuffer: GFXArrayBuffer | null = null;
     private indexBuffer: GFXArrayBuffer | null = null;
     private indexCount: number = 0;
+    private materialIndex: number = -1;
 
     /**
      * Creates an instance of Mesh with the specified name.
@@ -59,7 +60,15 @@ export default class Mesh {
     getIndexBuffer(): GFXArrayBuffer | null {
         return this.indexBuffer;
     }
+    
+    getMaterialIndex(): number {
+        return this.materialIndex;
+    }
 
+    setMaterialIndex(index: number): void {
+        this.materialIndex = index;
+    }
+    
     /**
      * Destroys the mesh and releases its resources.
      */

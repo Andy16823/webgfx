@@ -1,4 +1,4 @@
-import {WebGFX} from "@/core/WebGFX";
+import { WebGFX } from "@/core/WebGFX";
 
 /**
  * Class representing a GPU texture in the WebGFX framework.
@@ -13,24 +13,63 @@ export default class Texture {
      * @param gfx - The WebGFX instance used to create the GPU texture.
      * @param imageBitmap - The HTMLImageElement or ImageBitmap used to populate the texture.
      */
-    constructor(gfx: WebGFX, imageBitmap: HTMLImageElement | ImageBitmap) {
-        this.texture = gfx.device.createTexture({
-            size: [imageBitmap.width, imageBitmap.height],
+    constructor(texture: GPUTexture, textureView: GPUTextureView, sampler: GPUSampler) {
+        this.texture = texture;
+        this.textureView = textureView;
+        this.sampler = sampler;
+    }
+    
+    static fromImage(gfx: WebGFX, image: ImageBitmap | HTMLImageElement): Texture {
+        const gpuTexture = gfx.device.createTexture({
+            size: [image.width, image.height],
             format: 'rgba8unorm',
             usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
         });
 
         gfx.device.queue.copyExternalImageToTexture(
-            { source: imageBitmap },
-            { texture: this.texture },
-            [imageBitmap.width, imageBitmap.height]
+            { source: image },
+            { texture: gpuTexture },
+            [image.width, image.height]
         );
 
-        this.textureView = this.texture.createView();
-        this.sampler = gfx.device.createSampler({
+        const textureView = gpuTexture.createView();
+        const sampler = gfx.device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
         });
+
+        return new Texture(gpuTexture, textureView, sampler);
+    }
+
+    static fromColor(gfx: WebGFX, width: number, height: number, color: [number, number, number, number]): Texture {
+        const gpuTexture = gfx.device.createTexture({
+            size: [width, height],
+            format: 'rgba8unorm',
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+        });
+
+        const data = new Uint8Array(width * height * 4);
+        for (let i = 0; i < width * height; i++) {
+            data[i * 4 + 0] = color[0];
+            data[i * 4 + 1] = color[1];
+            data[i * 4 + 2] = color[2];
+            data[i * 4 + 3] = color[3];
+        }
+
+        gfx.device.queue.writeTexture(
+            { texture: gpuTexture },
+            data,
+            { bytesPerRow: width * 4 },
+            [width, height]
+        );
+
+        const textureView = gpuTexture.createView();
+        const sampler = gfx.device.createSampler({
+            magFilter: 'linear',
+            minFilter: 'linear',
+        });
+
+        return new Texture(gpuTexture, textureView, sampler);
     }
 
     /**
@@ -60,7 +99,7 @@ export default class Texture {
     /**
      * Destroys the texture and releases its resources.
      */
-    dispose() {
+    destroy() {
         this.texture.destroy();
     }
 }
