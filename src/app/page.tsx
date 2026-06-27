@@ -2,19 +2,14 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import { WebGFX } from "@/core/WebGFX";
-import { defaultShader } from "./shader/Shaders";
-import PipelineBuilder from "@/core/PipelineBuilder";
-
-import { OrthographicCamera } from "@/core/Camera";
 import { MyRenderer } from "./MyRenderer";
-import Transform from "@/core/Transform";
+import { Renderer3D } from "./Renderer3D";
 import { useRef, useState, useEffect } from "react";
 import Viewport from "@/core/Viewport";
 import { ViewportMode } from "@/core/Viewport";
 
 export default function Home() {
-  const rendererRef = useRef<MyRenderer>(new MyRenderer());
+  const rendererRef = useRef<Renderer3D>(new Renderer3D());
   const [invalidateSignal, setInvalidateSignal] = useState(0);
 
   useEffect(() => {

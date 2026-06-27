@@ -1,13 +1,13 @@
 import Buffer from '@/core/Buffer';
 import { WebGFX } from '@/core/WebGFX';
 
-export default class ArrayBuffer implements Buffer {
+export default class GFXArrayBuffer implements Buffer {
     buffer: GPUBuffer;
     size: number;
     usage: GPUBufferUsageFlags;
     mappedAtCreation: boolean;
 
-    constructor(data: Float32Array | Uint32Array, usage: GPUBufferUsageFlags, gfx: WebGFX) {
+    constructor(data: Float32Array | Uint32Array | Uint16Array, usage: GPUBufferUsageFlags, gfx: WebGFX) {
         this.size = data.byteLength;
         this.usage = usage;
         this.mappedAtCreation = false;

@@ -58,3 +58,46 @@ export function defaultShader(): string {
     }
     `;
 }
+
+export function meshShader(): string {
+    return `
+
+    struct VertexInput {
+        @location(0) position: vec3f
+    }
+    
+    struct VertexOutput {
+        @builtin(position) position: vec4f
+    }
+
+    struct CameraUniforms {
+        viewMatrix: mat4x4f,
+        projectionMatrix: mat4x4f
+    }
+
+    struct ModelUniforms {
+        modelMatrix: mat4x4f
+    }
+    
+    @group(0) @binding(0)
+    var<uniform> cameraUniforms: CameraUniforms;
+
+    @group(0) @binding(1)
+    var<uniform> modelUniforms: ModelUniforms;
+
+    @vertex
+    fn vs_main(input: VertexInput) -> VertexOutput {
+        var output: VertexOutput;
+        let mvp = cameraUniforms.projectionMatrix * cameraUniforms.viewMatrix * modelUniforms.modelMatrix;
+
+        let pos = input.position;
+        output.position = mvp * vec4f(pos, 1.0);
+        return output;
+    }
+
+    @fragment
+    fn fs_main() -> @location(0) vec4f {
+        return vec4f(1.0, 1.0, 1.0, 1.0);
+    }
+    `;
+}

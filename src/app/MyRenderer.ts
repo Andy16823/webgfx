@@ -5,16 +5,17 @@ import Transform from '@/core/Transform';
 import PipelineBuilder from '@/core/PipelineBuilder';
 import { defaultShader } from './shader/Shaders';
 import Texture from '@/core/Texture';
-import ArrayBuffer from '@/core/ArrayBuffer';
+import GFXArrayBuffer from '@/core/GFXArrayBuffer';
+import GLTFLoader from '@/core/GLTFLoader';
 
 export class MyRenderer implements Renderer {
     private camera = new OrthographicCamera([0, 0], [800, 600]);
     private transform = new Transform();
-    private vertexBuffer: ArrayBuffer | null = null;
-    private indexBuffer: ArrayBuffer | null = null;
-    private uniformBuffer: ArrayBuffer | null = null;
-    private cameraUniformBuffer: ArrayBuffer | null = null;
-    private modelUniformBuffer: ArrayBuffer | null = null;
+    private vertexBuffer: GFXArrayBuffer | null = null;
+    private indexBuffer: GFXArrayBuffer | null = null;
+    private uniformBuffer: GFXArrayBuffer | null = null;
+    private cameraUniformBuffer: GFXArrayBuffer | null = null;
+    private modelUniformBuffer: GFXArrayBuffer | null = null;
     private pipeline: GPURenderPipeline | null = null;
     private uniformBindGroup: GPUBindGroup | null = null;
     private cameraBindGroup: GPUBindGroup | null = null;
@@ -36,11 +37,11 @@ export class MyRenderer implements Renderer {
             0.5, -0.5, 1.0, 1.0,  // Vertex 3: Bottom Right
             -0.5, -0.5, 0.0, 1.0, // Vertex 4: Bottom Left
         ]);
-        this.vertexBuffer = new ArrayBuffer(vertices, GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST, gfx);
+        this.vertexBuffer = new GFXArrayBuffer(vertices, GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST, gfx);
 
         // Create index buffer
         const indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
-        this.indexBuffer = new ArrayBuffer(indices, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, gfx);
+        this.indexBuffer = new GFXArrayBuffer(indices, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, gfx);
 
         // Create uniform buffer for camera
         const viewMatrix = this.camera.getViewMatrix();
@@ -50,18 +51,18 @@ export class MyRenderer implements Renderer {
             ...projectionMatrix
         ]);
 
-        this.cameraUniformBuffer = new ArrayBuffer(cameraUniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
+        this.cameraUniformBuffer = new GFXArrayBuffer(cameraUniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
 
         // Create uniform buffer for model
         const modelMatrix = this.transform.getModelMatrix();
         const modelUniformData = new Float32Array([...modelMatrix]);
-        this.modelUniformBuffer = new ArrayBuffer(modelUniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
+        this.modelUniformBuffer = new GFXArrayBuffer(modelUniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
 
         // Create uniform buffer for color
         const uniformData = new Float32Array([
             1.0, 1.0, 0.0, 1.0
         ]);
-        this.uniformBuffer = new ArrayBuffer(uniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
+        this.uniformBuffer = new GFXArrayBuffer(uniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
 
         // Create pipeline
         const shaderCode = defaultShader();

@@ -28,3 +28,11 @@ export function quatToEuler(out: vec3, quat: quat) {
     }
     return out;
 }
+
+export function getParentPath(path: string): string {
+    const lastSlashIndex = path.lastIndexOf('/');
+    if (lastSlashIndex === -1) {
+        return '';
+    }
+    return path.substring(0, lastSlashIndex);
+}
