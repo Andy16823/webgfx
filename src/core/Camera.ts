@@ -5,7 +5,19 @@ const WORLD_FRONT = vec3.fromValues(0, 0, -1);
 const WORLD_UP = vec3.fromValues(0, 1, 0);
 const WORLD_RIGHT = vec3.fromValues(1, 0, 0);
 
-export class PerspectiveCamera {
+/**
+ * Camera interface defines the methods that any camera class should implement to provide view and projection matrices.
+ */
+export interface Camera {
+    getViewMatrix(): mat4;
+    getProjectionMatrix(): mat4;
+}
+
+/**
+ * PerspectiveCamera class represents a camera in 3D space with perspective projection.
+ * It provides methods to get the view and projection matrices based on the camera's position, rotation, and other parameters.
+ */
+export class PerspectiveCamera implements Camera {
     private position: vec3;
     private rotation: quat;
     private aspect: number;
@@ -13,6 +25,14 @@ export class PerspectiveCamera {
     private far: number;
     private fov: number;
 
+    /**
+     * Creates a new PerspectiveCamera instance.
+     * @param position - The position of the camera in 3D space.
+     * @param aspect - The aspect ratio of the camera's view (width / height).
+     * @param near - The near clipping plane distance.
+     * @param far - The far clipping plane distance.
+     * @param fov - The field of view in degrees (default is 45 degrees).
+     */
     constructor(position: vec3, aspect: number, near: number = 0.1, far: number = 1000.0, fov: number = 45) {
         this.position = position;
         this.rotation = quat.create();
@@ -22,18 +42,34 @@ export class PerspectiveCamera {
         this.far = far;
     }
 
+    /**
+     * Returns the up vector of the camera in world space, calculated based on the camera's rotation.
+     * @returns A vec3 representing the up direction of the camera.
+     */
     getCameraUp(): vec3 {
         return vec3.transformQuat(vec3.create(), WORLD_UP, this.rotation);
     }
 
+    /**
+     * Returns the right vector of the camera in world space, calculated based on the camera's rotation.
+     * @returns A vec3 representing the right direction of the camera.
+     */
     getCameraRight(): vec3 {
         return vec3.transformQuat(vec3.create(), WORLD_RIGHT, this.rotation);
     }
 
+    /**
+     * Returns the front vector of the camera in world space, calculated based on the camera's rotation.
+     * @returns A vec3 representing the front direction of the camera.
+     */
     getCameraFront(): vec3 {
         return vec3.transformQuat(vec3.create(), WORLD_FRONT, this.rotation);
     }
 
+    /**
+     * Returns the view matrix of the camera, which transforms world coordinates into camera space.
+     * @returns A mat4 representing the view matrix of the camera.
+     */
     getViewMatrix(): mat4 {
         const viewMatrix = mat4.create();
         const front = this.getCameraFront();
@@ -42,6 +78,10 @@ export class PerspectiveCamera {
         return viewMatrix;
     }
 
+    /**
+     * Returns the projection matrix of the camera, which defines how 3D points are projected onto the 2D screen.
+     * @returns A mat4 representing the projection matrix of the camera.
+     */
     getProjectionMatrix(): mat4 {
         const projectionMatrix = mat4.create();
         mat4.perspective(projectionMatrix, getRadians(this.fov), this.aspect, this.near, this.far);
@@ -49,12 +89,23 @@ export class PerspectiveCamera {
     }
 }
 
-export class OrthographicCamera {
+/**
+ * OrthographicCamera class represents a camera in 2D space with orthographic projection.
+ * It provides methods to get the view and projection matrices based on the camera's position and resolution.
+ */
+export class OrthographicCamera implements Camera {
     private position: vec2;
     private resolution: vec2;
     private near: number;
     private far: number;
 
+    /**
+     * Creates an instance of OrthographicCamera.
+     * @param position - The position of the camera in 2D space.
+     * @param resolution - The resolution of the camera's view.
+     * @param near - The near clipping plane distance (default is -1).
+     * @param far - The far clipping plane distance (default is 1).
+     */
     constructor(position: vec2, resolution: vec2, near: number = -1, far: number = 1) {
         this.position = position;
         this.resolution = resolution;
@@ -62,12 +113,20 @@ export class OrthographicCamera {
         this.far = far;
     }
 
+    /**
+     * Returns the view matrix of the orthographic camera, which transforms world coordinates into camera space.
+     * @returns A mat4 representing the view matrix of the orthographic camera.
+     */
     getViewMatrix(): mat4 {
         const viewMatrix = mat4.create();
         mat4.lookAt(viewMatrix, vec3.fromValues(0, 0, 1), vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
         return viewMatrix;
     }
 
+    /**
+     * Returns the projection matrix of the orthographic camera, which defines how 2D points are projected onto the screen.
+     * @returns A mat4 representing the projection matrix of the orthographic camera.
+     */
     getProjectionMatrix(): mat4 {
         const halfWidth = this.resolution[0] / 2;
         const halfHeight = this.resolution[1] / 2;

@@ -1,10 +1,20 @@
 import {vec3, quat, mat4} from 'gl-matrix';
 
-
+/**
+ * Converts degrees to radians.
+ * @param degrees - The angle in degrees.
+ * @returns The angle in radians.
+ */
 export function getRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
 }
 
+/**
+ * Converts a quaternion to Euler angles (in radians).
+ * @param out - The output vector to store the Euler angles.
+ * @param quat - The input quaternion to convert.
+ * @returns The output vector containing the Euler angles (pitch, yaw, roll).
+ */
 export function quatToEuler(out: vec3, quat: quat) {
     let x = quat[0], y = quat[1], z = quat[2], w = quat[3];
     let x2 = x * x, y2 = y * y, z2 = z * z, w2 = w * w;
@@ -29,6 +39,11 @@ export function quatToEuler(out: vec3, quat: quat) {
     return out;
 }
 
+/**
+ * Returns the parent path of a given file path.
+ * @param path - The file path to extract the parent path from.
+ * @returns The parent path of the given file path. If there is no parent, returns an empty string.
+ */
 export function getParentPath(path: string): string {
     const lastSlashIndex = path.lastIndexOf('/');
     if (lastSlashIndex === -1) {

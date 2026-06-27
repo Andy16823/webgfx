@@ -4,6 +4,9 @@ import { getParentPath } from "@/core/Utils";
 import GFXArrayBuffer from "@/core/GFXArrayBuffer";
 import { WebGFX } from "@/core/WebGFX";
 
+/**
+ * Class representing a GLTF buffer, which contains the URI and byte length of the buffer data.
+ */
 class GLTFBuffer {
     uri: string;
     byteLength: number;
@@ -15,9 +18,18 @@ class GLTFBuffer {
     }
 }
 
-
+/**
+ * Class responsible for loading GLTF models and parsing their data into Mesh objects.
+ * It provides methods to load GLTF files, read buffer data, and parse nodes into meshes.
+ */
 export default class GLTFLoader {
 
+    /**
+     * Loads a GLTF model from the specified URL and returns a Model object containing the parsed meshes.
+     * @param url - The URL of the GLTF file to load.
+     * @param gfx - The WebGFX instance used for creating GPU buffers.
+     * @returns A Promise that resolves to a Model object containing the parsed meshes.
+     */
     async load(url: string, gfx: WebGFX): Promise<Model> {
         const response = await fetch(url);
         const gltf = await response.json();
@@ -29,6 +41,12 @@ export default class GLTFLoader {
         return new Model(meshes);
     }
 
+    /**
+     * Reads the buffer data from the GLTF file and returns an array of GLTFBuffer objects containing the loaded data.
+     * @param gltf - The parsed GLTF JSON object.
+     * @param basePath - The base path for resolving buffer URIs.
+     * @returns A Promise that resolves to an array of GLTFBuffer objects containing the loaded buffer data.
+     */
     async readBuffers(gltf: any, basePath: string): Promise<GLTFBuffer[]> {
         let buffers = await Promise.all(
             gltf.buffers.map(async (buffer: GLTFBuffer) => {
@@ -45,6 +63,13 @@ export default class GLTFLoader {
         return buffers;
     }
 
+    /**
+     * Parses the nodes in the GLTF file and creates Mesh objects for each node, using the provided buffer data.
+     * @param gltf - The parsed GLTF JSON object.
+     * @param buffers - An array of GLTFBuffer objects containing the loaded buffer data.
+     * @param gfx - The WebGFX instance used for creating GPU buffers.
+     * @returns An array of Mesh objects created from the parsed nodes in the GLTF file.
+     */
     parseNodes(gltf: any, buffers: GLTFBuffer[], gfx: WebGFX): Mesh[] {
         const meshes: Mesh[] = [];
 

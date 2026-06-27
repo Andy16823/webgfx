@@ -1,11 +1,18 @@
 import {WebGFX} from "@/core/WebGFX";
-import image from "next/image";
 
+/**
+ * Class representing a GPU texture in the WebGFX framework.
+ */
 export default class Texture {
     private texture: GPUTexture;
     private textureView: GPUTextureView;
     private sampler: GPUSampler;
 
+    /**
+     * Creates an instance of Texture.
+     * @param gfx - The WebGFX instance used to create the GPU texture.
+     * @param imageBitmap - The HTMLImageElement or ImageBitmap used to populate the texture.
+     */
     constructor(gfx: WebGFX, imageBitmap: HTMLImageElement | ImageBitmap) {
         this.texture = gfx.device.createTexture({
             size: [imageBitmap.width, imageBitmap.height],
@@ -26,18 +33,33 @@ export default class Texture {
         });
     }
 
+    /**
+     * Returns the GPUTextureView associated with this texture.
+     * @returns The GPUTextureView of the texture.
+     */
     getTextureView(): GPUTextureView {
         return this.textureView;
     }
 
+    /**
+     * Returns the GPUSampler associated with this texture.
+     * @returns The GPUSampler of the texture.
+     */
     getSampler(): GPUSampler {
         return this.sampler;
     }
 
+    /**
+     * Returns the GPUTexture associated with this texture.
+     * @returns The GPUTexture of the texture.
+     */
     getTexture(): GPUTexture {
         return this.texture;
     }
 
+    /**
+     * Destroys the texture and releases its resources.
+     */
     dispose() {
         this.texture.destroy();
     }

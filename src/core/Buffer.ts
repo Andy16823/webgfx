@@ -1,5 +1,8 @@
 import { WebGFX } from '@/core/WebGFX';
 
+/**
+ * Interface representing a GPU buffer.
+ */
 export default interface Buffer {
     buffer: GPUBuffer;
     size: number;

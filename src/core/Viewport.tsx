@@ -33,16 +33,16 @@ interface ViewportProps {
 /**
  * Viewport is a React component that provides a canvas for rendering graphics using WebGFX and a specified Renderer.
  * @param param0 - The properties for the Viewport component, including the renderer, invalidateSignal, width, height, and mode.
- * @returns A canvas element that serves as the rendering surface for the specified Renderer.
+ * @returns A canvas element that serves as the rendering surface for the specified Scene.
  */
 export default function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = ViewportMode.OnDemand }: ViewportProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gfxRef = useRef<WebGFX | null>(null);
 
     /**
-     * Renders a single frame using the provided renderer and WebGFX instance.
+     * Renders a single frame using the provided scene and WebGFX instance.
      * This function is called whenever the invalidateSignal changes, indicating that a re-render is needed.
-     * It begins a new frame, calls the renderer's render method, and ends the frame.
+     * It begins a new frame, calls the scene's render method, and ends the frame.
      */
     const renderFrame = () => {
         const gfx = gfxRef.current;
@@ -54,7 +54,7 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
     }
 
     /**
-     * Initializes the WebGFX instance and the renderer when the component mounts.
+     * Initializes the WebGFX instance and the scene when the component mounts.
      */
     useEffect(() => {
         const canvas = canvasRef.current;
