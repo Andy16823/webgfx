@@ -1,23 +1,20 @@
-import { Renderer } from '@/core/Renderer';
+import { Scene } from '@/core/Scene';
 import { WebGFX } from '@/core/WebGFX';
 import { PerspectiveCamera } from '@/core/Camera';
 import Transform from '@/core/Transform';
 import PipelineBuilder from '@/core/PipelineBuilder';
 import { meshShader } from './shader/Shaders';
-import Texture from '@/core/Texture';
 import GFXArrayBuffer from '@/core/GFXArrayBuffer';
 import GLTFLoader from '@/core/GLTFLoader';
 import Model from '@/core/Model';
 
-export class Renderer3D implements Renderer {
+export class Scene3D implements Scene {
     private camera = new PerspectiveCamera([0, 0, 5], 800 / 600);
     private transform = new Transform();
     private model: Model | null = null;
-
     private cameraUniformBuffer: GFXArrayBuffer | null = null;
     private modelUniformBuffer: GFXArrayBuffer | null = null;
     private pipeline: GPURenderPipeline | null = null;
-    private uniformBindGroup: GPUBindGroup | null = null;
     private cameraBindGroup: GPUBindGroup | null = null;
 
     async initialize(gfx: WebGFX): Promise<void> {

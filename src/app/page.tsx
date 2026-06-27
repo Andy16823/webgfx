@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import { MyRenderer } from "./MyRenderer";
-import { Renderer3D } from "./Renderer3D";
+import { Scene2D } from "./Scene2D";
+import { Scene3D } from "./Scene3D";
 import { useRef, useState, useEffect } from "react";
 import Viewport from "@/core/Viewport";
 import { ViewportMode } from "@/core/Viewport";
 
 export default function Home() {
-  const rendererRef = useRef<Renderer3D>(new Renderer3D());
+  const sceneRef = useRef<Scene3D>(new Scene3D());
   const [invalidateSignal, setInvalidateSignal] = useState(0);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function Home() {
         />
         <div className={styles.intro}>
           <h1>To get started, edit the page.tsx file.</h1>
-          <Viewport renderer={rendererRef.current} invalidateSignal={invalidateSignal} mode={ViewportMode.Continuous} />
+          <Viewport scene={sceneRef.current} invalidateSignal={invalidateSignal} mode={ViewportMode.Continuous} />
         </div>
         <div className={styles.ctas}>
           <a

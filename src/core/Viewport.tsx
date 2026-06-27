@@ -1,6 +1,6 @@
 "use client";
 
-import { Renderer } from "@/core/Renderer";
+import { Scene } from "@/core/Scene";
 import { useEffect, useRef } from 'react';
 import { WebGFX } from '@/core/WebGFX';
 
@@ -23,7 +23,7 @@ export enum ViewportMode {
  * - mode: The rendering mode for the viewport (default is OnDemand).
  */
 interface ViewportProps {
-    renderer: Renderer;
+    scene: Scene;
     invalidateSignal?: number;
     width?: number;
     height?: number;
@@ -35,7 +35,7 @@ interface ViewportProps {
  * @param param0 - The properties for the Viewport component, including the renderer, invalidateSignal, width, height, and mode.
  * @returns A canvas element that serves as the rendering surface for the specified Renderer.
  */
-export default function Viewport({ renderer, invalidateSignal, width = 800, height = 600, mode = ViewportMode.OnDemand }: ViewportProps) {
+export default function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = ViewportMode.OnDemand }: ViewportProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gfxRef = useRef<WebGFX | null>(null);
 
@@ -49,7 +49,7 @@ export default function Viewport({ renderer, invalidateSignal, width = 800, heig
         if (!gfx) return;
 
         const { encoder, renderPass } = gfx.beginFrame();
-        renderer.render(gfx, renderPass);
+        scene.render(gfx, renderPass);
         gfx.endFrame(encoder, renderPass);
     }
 
@@ -69,7 +69,7 @@ export default function Viewport({ renderer, invalidateSignal, width = 800, heig
             if (disposed) return;
 
             gfxRef.current = gfx;
-            await renderer.initialize(gfx);
+            await scene.initialize(gfx);
 
             if (mode === ViewportMode.OnDemand) {
                 renderFrame();
@@ -83,7 +83,7 @@ export default function Viewport({ renderer, invalidateSignal, width = 800, heig
                 const deltaTime = (now - lastFrameTime) / 1000;
                 lastFrameTime = now;
 
-                renderer.update(gfx, deltaTime);
+                scene.update(gfx, deltaTime);
                 renderFrame();
 
                 frameId = requestAnimationFrame(loop);
@@ -96,13 +96,13 @@ export default function Viewport({ renderer, invalidateSignal, width = 800, heig
             disposed = true;
             cancelAnimationFrame(frameId);
             if (gfxRef.current) {
-                renderer.dispose(gfxRef.current);
+                scene.dispose(gfxRef.current);
             }
             else {
-                console.warn("WebGFX instance not initialized; cannot dispose renderer.");
+                console.warn("WebGFX instance not initialized; cannot dispose scene.");
             }
         }
-    }, [renderer, mode]);
+    }, [scene, mode]);
 
     /**
      * Signal listener that triggers a re-render whenever the invalidateSignal changes.

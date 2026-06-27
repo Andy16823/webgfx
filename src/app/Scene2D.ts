@@ -1,4 +1,4 @@
-import { Renderer } from '@/core/Renderer';
+import { Scene } from '@/core/Scene';
 import { WebGFX } from '@/core/WebGFX';
 import { OrthographicCamera } from '@/core/Camera';
 import Transform from '@/core/Transform';
@@ -8,7 +8,7 @@ import Texture from '@/core/Texture';
 import GFXArrayBuffer from '@/core/GFXArrayBuffer';
 import GLTFLoader from '@/core/GLTFLoader';
 
-export class MyRenderer implements Renderer {
+export class Scene2D implements Scene {
     private camera = new OrthographicCamera([0, 0], [800, 600]);
     private transform = new Transform();
     private vertexBuffer: GFXArrayBuffer | null = null;
