@@ -188,14 +188,30 @@ export default class GLTFLoader {
                 const vec3Size = 3 * floatSize; // Size of a vec3 in bytes
                 const vec2Size = 2 * floatSize; // Size of a vec2 in bytes
 
+                const positionBase =
+                    (positionBufferView.byteOffset ?? 0) +
+                    (positionAccessor.byteOffset ?? 0);
+
+                const normalBase =
+                    (normalBufferView.byteOffset ?? 0) +
+                    (normalAccessor.byteOffset ?? 0);
+
+                const uvBase =
+                    (uvBufferView.byteOffset ?? 0) +
+                    (uvAccessor.byteOffset ?? 0);
+
+                const positionStride = positionBufferView.byteStride ?? vec3Size;
+                const normalStride = normalBufferView.byteStride ?? vec3Size;
+                const uvStride = uvBufferView.byteStride ?? vec2Size;
+
                 // Create the vertex buffer data
                 let vertexBufferData = new Float32Array(positionAccessor.count * vertexSize); // 3 for position, 3 for normal, 2 for UV
                 const vertexCount = positionAccessor.count;
                 for (let i = 0; i < vertexCount; i++) {
                     // Calculate the offsets for position, normal, and UV data
-                    const positionOffset = positionBufferView.byteOffset + i * vec3Size;
-                    const normalOffset = normalBufferView.byteOffset + i * vec3Size;
-                    const uvOffset = uvBufferView.byteOffset + i * vec2Size;
+                    const positionOffset = positionBase + i * positionStride;
+                    const normalOffset = normalBase + i * normalStride;
+                    const uvOffset = uvBase + i * uvStride;
 
                     // Read the position, normal, and UV data from the buffers
                     const position = new Float32Array(buffers[positionBufferView.buffer].buffer!, positionOffset, 3);
@@ -219,7 +235,17 @@ export default class GLTFLoader {
                 const gltfIndexBuffer = buffers[indexBufferView.buffer];
                 console.log("GLTF Index Buffer:", gltfIndexBuffer);
                 if (gltfIndexBuffer && gltfIndexBuffer.buffer) {
-                    const indexData16 = new Uint16Array(gltfIndexBuffer.buffer, indexBufferView.byteOffset, indexAccessor.count);
+
+                    const indexBase =
+                        (indexBufferView.byteOffset ?? 0) +
+                        (indexAccessor.byteOffset ?? 0);
+
+                    const indexData16 = new Uint16Array(
+                        gltfIndexBuffer.buffer,
+                        indexBase,
+                        indexAccessor.count
+                    );
+
                     const indexData = new Uint32Array(indexData16);
                     const indexBuffer = new GFXArrayBuffer(indexData, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, gfx);
                     gfxMesh.setIndexBuffer(indexBuffer, indexAccessor.count);
