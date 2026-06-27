@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import Viewport from "@/core/components/Viewport";
 import { WebGFX } from "@/core/WebGFX";
 import { defaultShader } from "./shader/Shaders";
 import PipelineBuilder from "@/core/PipelineBuilder";
@@ -10,12 +9,27 @@ import PipelineBuilder from "@/core/PipelineBuilder";
 import { OrthographicCamera } from "@/core/Camera";
 import { MyRenderer } from "./MyRenderer";
 import Transform from "@/core/Transform";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import Viewport from "@/core/Viewport";
+import { ViewportMode } from "@/core/Viewport";
 
 export default function Home() {
   const rendererRef = useRef<MyRenderer>(new MyRenderer());
+  const [invalidateSignal, setInvalidateSignal] = useState(0);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "r" || event.key === "R") {
+        setInvalidateSignal((prev) => prev + 1);
+      }
+    };
 
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <div className={styles.page}>
@@ -30,7 +44,7 @@ export default function Home() {
         />
         <div className={styles.intro}>
           <h1>To get started, edit the page.tsx file.</h1>
-          <Viewport renderer={rendererRef.current} fpsTarget={40} />
+          <Viewport renderer={rendererRef.current} invalidateSignal={invalidateSignal} mode={ViewportMode.Continuous} />
         </div>
         <div className={styles.ctas}>
           <a

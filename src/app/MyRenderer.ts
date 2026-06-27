@@ -4,30 +4,29 @@ import { OrthographicCamera } from '@/core/Camera';
 import Transform from '@/core/Transform';
 import PipelineBuilder from '@/core/PipelineBuilder';
 import { defaultShader } from './shader/Shaders';
+import Texture from '@/core/Texture';
+import ArrayBuffer from '@/core/ArrayBuffer';
 
 export class MyRenderer implements Renderer {
     private camera = new OrthographicCamera([0, 0], [800, 600]);
     private transform = new Transform();
-    private vertexBuffer: GPUBuffer | null = null;
-    private indexBuffer: GPUBuffer | null = null;
-    private uniformBuffer: GPUBuffer | null = null;
-    private cameraUniformBuffer: GPUBuffer | null = null;
-    private modelUniformBuffer: GPUBuffer | null = null;
+    private vertexBuffer: ArrayBuffer | null = null;
+    private indexBuffer: ArrayBuffer | null = null;
+    private uniformBuffer: ArrayBuffer | null = null;
+    private cameraUniformBuffer: ArrayBuffer | null = null;
+    private modelUniformBuffer: ArrayBuffer | null = null;
     private pipeline: GPURenderPipeline | null = null;
     private uniformBindGroup: GPUBindGroup | null = null;
     private cameraBindGroup: GPUBindGroup | null = null;
-    private texture: GPUTexture | null = null;
-    private textureView: GPUTextureView | null = null;
-    private sampler: GPUSampler | null = null;
+    private texture: Texture | null = null;
     private samplerBindGroup: GPUBindGroup | null = null;
-
 
     async initialize(gfx: WebGFX): Promise<void> {
         console.log("WebGFX initialized:", gfx);
 
         // Set up camera and transform
         this.transform.setPosition([-200, 0, 0]);
-        this.transform.setScale([64, 64, 0]);
+        this.transform.setScale([256, 256, 0]);
         this.transform.setRotationEuler([0, 0, 0]);
 
         // Create vertex buffer
@@ -37,20 +36,11 @@ export class MyRenderer implements Renderer {
             0.5, -0.5, 1.0, 1.0,  // Vertex 3: Bottom Right
             -0.5, -0.5, 0.0, 1.0, // Vertex 4: Bottom Left
         ]);
-
-        this.vertexBuffer = gfx.device.createBuffer({
-            size: vertices.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
-        });
-        gfx.device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+        this.vertexBuffer = new ArrayBuffer(vertices, GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST, gfx);
 
         // Create index buffer
         const indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
-        this.indexBuffer = gfx.device.createBuffer({
-            size: indices.byteLength,
-            usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST
-        });
-        gfx.device.queue.writeBuffer(this.indexBuffer, 0, indices);
+        this.indexBuffer = new ArrayBuffer(indices, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, gfx);
 
         // Create uniform buffer for camera
         const viewMatrix = this.camera.getViewMatrix();
@@ -60,32 +50,18 @@ export class MyRenderer implements Renderer {
             ...projectionMatrix
         ]);
 
-        this.cameraUniformBuffer = gfx.device.createBuffer({
-            size: cameraUniformData.byteLength,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-        gfx.device.queue.writeBuffer(this.cameraUniformBuffer, 0, cameraUniformData);
+        this.cameraUniformBuffer = new ArrayBuffer(cameraUniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
 
         // Create uniform buffer for model
         const modelMatrix = this.transform.getModelMatrix();
         const modelUniformData = new Float32Array([...modelMatrix]);
-
-        this.modelUniformBuffer = gfx.device.createBuffer({
-            size: modelUniformData.byteLength,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-        gfx.device.queue.writeBuffer(this.modelUniformBuffer, 0, modelUniformData);
+        this.modelUniformBuffer = new ArrayBuffer(modelUniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
 
         // Create uniform buffer for color
         const uniformData = new Float32Array([
             1.0, 1.0, 0.0, 1.0
         ]);
-
-        this.uniformBuffer = gfx.device.createBuffer({
-            size: uniformData.byteLength,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-        gfx.device.queue.writeBuffer(this.uniformBuffer, 0, uniformData);
+        this.uniformBuffer = new ArrayBuffer(uniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
 
         // Create pipeline
         const shaderCode = defaultShader();
@@ -124,7 +100,7 @@ export class MyRenderer implements Renderer {
             entries: [{
                 binding: 0,
                 resource: {
-                    buffer: this.uniformBuffer
+                    buffer: this.uniformBuffer?.buffer
                 }
             }]
         });
@@ -135,13 +111,13 @@ export class MyRenderer implements Renderer {
                 {
                     binding: 0,
                     resource: {
-                        buffer: this.cameraUniformBuffer
+                        buffer: this.cameraUniformBuffer?.buffer
                     }
                 },
                 {
                     binding: 1,
                     resource: {
-                        buffer: this.modelUniformBuffer
+                        buffer: this.modelUniformBuffer?.buffer
                     }
                 }
             ]
@@ -151,34 +127,18 @@ export class MyRenderer implements Renderer {
         image.src = '/pmr_logo.png';
         await image.decode();
 
-        this.texture = gfx.device.createTexture({
-            size: [image.width, image.height],
-            format: 'rgba8unorm',
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
-        });
-
-        gfx.device.queue.copyExternalImageToTexture(
-            { source: image },
-            { texture: this.texture },
-            [image.width, image.height]
-        );
-
-        this.textureView = this.texture.createView();
-        this.sampler = gfx.device.createSampler({
-            magFilter: 'linear',
-            minFilter: 'linear',
-        });
+        this.texture = new Texture(gfx, image);
 
         this.samplerBindGroup = gfx.device.createBindGroup({
             layout: this.pipeline.getBindGroupLayout(2),
             entries: [
                 {
                     binding: 0,
-                    resource: this.textureView
+                    resource: this.texture.getTextureView()
                 },
                 {
                     binding: 1,
-                    resource: this.sampler
+                    resource: this.texture.getSampler()
                 }
             ]
         });
@@ -190,8 +150,8 @@ export class MyRenderer implements Renderer {
             return;
         }
         pass.setPipeline(this.pipeline);
-        pass.setVertexBuffer(0, this.vertexBuffer);
-        pass.setIndexBuffer(this.indexBuffer, 'uint32');
+        pass.setVertexBuffer(0, this.vertexBuffer.buffer);
+        pass.setIndexBuffer(this.indexBuffer.buffer, 'uint32');
         pass.setBindGroup(0, this.uniformBindGroup);
         pass.setBindGroup(1, this.cameraBindGroup);
         pass.setBindGroup(2, this.samplerBindGroup);
@@ -199,18 +159,32 @@ export class MyRenderer implements Renderer {
     }
 
     dispose(gfx: WebGFX): void {
-        throw new Error('Method not implemented.');
+        this.vertexBuffer?.destroy();
+        this.indexBuffer?.destroy();
+        this.uniformBuffer?.destroy();
+        this.cameraUniformBuffer?.destroy();
+        this.modelUniformBuffer?.destroy();
+        this.texture?.dispose();
     }
 
     update(gfx: WebGFX, deltaTime: number): void {
-        // Update logic here
-        const red = (Math.sin(performance.now() / 1000) + 1) / 2; // Oscillates between 0 and 1
-        const green = (Math.cos(performance.now() / 1000) + 1) / 2;
-        const blue = (Math.sin(performance.now() / 500) + 1) / 2; // Faster oscillation for blue
 
-        const uniformData = new Float32Array([
-            red, green, blue, 1.0
-        ]);
-        gfx.device.queue.writeBuffer(this.uniformBuffer!, 0, uniformData);
+        if (this.uniformBuffer) {
+            const red = (Math.sin(performance.now() / 1000) + 1) / 2;
+            const green = (Math.cos(performance.now() / 1000) + 1) / 2;
+            const blue = (Math.sin(performance.now() / 500) + 1) / 2;
+
+            const uniformData = new Float32Array([
+                red, green, blue, 1.0
+            ]);
+            this.uniformBuffer.update(uniformData, gfx);
+        }
+
+        if (this.modelUniformBuffer) {
+            this.transform.setRotationEuler([0, 0, performance.now() / 10]);
+            const modelMatrix = this.transform.getModelMatrix();
+            const modelUniformData = new Float32Array([...modelMatrix]);
+            this.modelUniformBuffer.update(modelUniformData, gfx);
+        }
     }
 }
