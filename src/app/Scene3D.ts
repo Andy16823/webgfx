@@ -23,13 +23,13 @@ export class Scene3D implements Scene {
         console.log("WebGFX initialized:", gfx);
 
         // Set up camera and transform
-        this.transform.setPosition([0, 0, 0]);
-        this.transform.setScale([1, 1, 1]);
+        this.transform.setPosition([0, 0, -1]);
+        this.transform.setScale([0.5, 0.5, 0.5]);
         this.transform.setRotationEuler([0, 0, 0]);
 
         // Load the GLTF model
         const gltfLoader = new GLTFLoader();
-        this.model = await gltfLoader.load('/models/test/test.gltf', gfx);
+        this.model = await gltfLoader.load('/models/mecha/mecha.gltf', gfx);
         console.log("Loaded model:", this.model);
 
         // Create uniform buffer for camera
@@ -56,7 +56,7 @@ export class Scene3D implements Scene {
                 module: shaderModule,
                 entryPoint: 'vs_main',
                 buffers: [{
-                    arrayStride: 4 * 8, // 3 floats for position, 3 floats for normal, 2 floats for UV, 4 bytes per float
+                    arrayStride: 4 * 12, // 3 floats for position, 3 floats for normal, 2 floats for UV, 4 floats for tangent
                     attributes: [{
                         shaderLocation: 0,
                         offset: 0,
@@ -69,6 +69,11 @@ export class Scene3D implements Scene {
                         shaderLocation: 2,
                         offset: 4 * 6,
                         format: 'float32x2',
+                    },
+                    {
+                        shaderLocation: 3,
+                        offset: 4 * 8,
+                        format: 'float32x4',
                     }],
                 }],
             },

@@ -185,6 +185,12 @@ export default class GLTFLoader {
                 const uvBufferView = gltf.bufferViews[uvAccessor.bufferView];
                 console.log("UV BufferView:", uvBufferView);
 
+                // Tangent accessor
+                const tangentAccessorIndex = primitive.attributes.TANGENT;
+                const tangentAccessor = gltf.accessors[tangentAccessorIndex];
+                const tangentBufferView = gltf.bufferViews[tangentAccessor.bufferView];
+                console.log("Tangent BufferView:", tangentBufferView);
+
                 // Get the index accessor
                 const indexAccessorIndex = primitive.indices;
                 const indexAccessor = gltf.accessors[indexAccessorIndex];
@@ -192,8 +198,9 @@ export default class GLTFLoader {
                 console.log("Index BufferView:", indexBufferView);
 
                 // Size definitions for vertex data
-                const vertexSize = 8; // 3 for position, 3 for normal, 2 for UV
+                const vertexSize = 12; // 3 for position, 3 for normal, 2 for UV, 4 for tangent
                 const floatSize = 4; // Size of a float in bytes
+                const vec4Size = 4 * floatSize; // Size of a vec4 in bytes
                 const vec3Size = 3 * floatSize; // Size of a vec3 in bytes
                 const vec2Size = 2 * floatSize; // Size of a vec2 in bytes
 
@@ -209,25 +216,32 @@ export default class GLTFLoader {
                     (uvBufferView.byteOffset ?? 0) +
                     (uvAccessor.byteOffset ?? 0);
 
+                const tangentBase =
+                    (tangentBufferView.byteOffset ?? 0) +
+                    (tangentAccessor.byteOffset ?? 0);
+
                 const positionStride = positionBufferView.byteStride ?? vec3Size;
                 const normalStride = normalBufferView.byteStride ?? vec3Size;
                 const uvStride = uvBufferView.byteStride ?? vec2Size;
+                const tangentStride = tangentBufferView.byteStride ?? vec4Size;
 
                 // Create the vertex buffer data
-                let vertexBufferData = new Float32Array(positionAccessor.count * vertexSize); // 3 for position, 3 for normal, 2 for UV
+                let vertexBufferData = new Float32Array(positionAccessor.count * vertexSize); // 3 for position, 3 for normal, 2 for UV, 4 for tangent
                 const vertexCount = positionAccessor.count;
                 for (let i = 0; i < vertexCount; i++) {
                     // Calculate the offsets for position, normal, and UV data
                     const positionOffset = positionBase + i * positionStride;
                     const normalOffset = normalBase + i * normalStride;
                     const uvOffset = uvBase + i * uvStride;
+                    const tangentOffset = tangentBase + i * tangentStride;
 
-                    // Read the position, normal, and UV data from the buffers
+                    // Read the position, normal, UV, and tangent data from the buffers
                     const position = new Float32Array(buffers[positionBufferView.buffer].buffer!, positionOffset, 3);
                     const normal = new Float32Array(buffers[normalBufferView.buffer].buffer!, normalOffset, 3);
                     const uv = new Float32Array(buffers[uvBufferView.buffer].buffer!, uvOffset, 2);
+                    const tangent = new Float32Array(buffers[tangentBufferView.buffer].buffer!, tangentOffset, 4);
 
-                    // Populate the vertex buffer data with position, normal, and UV values
+                    // Populate the vertex buffer data with position, normal, UV, and tangent values
                     vertexBufferData[i * vertexSize] = position[0];
                     vertexBufferData[i * vertexSize + 1] = position[1];
                     vertexBufferData[i * vertexSize + 2] = position[2];
@@ -236,6 +250,10 @@ export default class GLTFLoader {
                     vertexBufferData[i * vertexSize + 5] = normal[2];
                     vertexBufferData[i * vertexSize + 6] = uv[0];
                     vertexBufferData[i * vertexSize + 7] = uv[1];
+                    vertexBufferData[i * vertexSize + 8] = tangent[0];
+                    vertexBufferData[i * vertexSize + 9] = tangent[1];
+                    vertexBufferData[i * vertexSize + 10] = tangent[2];
+                    vertexBufferData[i * vertexSize + 11] = tangent[3];
                 }
                 const vertexBuffer = new GFXArrayBuffer(vertexBufferData, GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST, gfx);
                 gfxMesh.setVertexBuffer(vertexBuffer);

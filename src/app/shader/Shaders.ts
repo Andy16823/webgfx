@@ -66,13 +66,16 @@ export function meshShader(): string {
         @location(0) position: vec3f,
         @location(1) normal: vec3f,
         @location(2) uv: vec2f,
+        @location(3) tangent: vec4f
     }
     
     struct VertexOutput {
         @builtin(position) position: vec4f,
         @location(0) normal: vec3f,
         @location(1) uv: vec2f,
-        @location(2) fragPos: vec4f
+        @location(2) fragPos: vec4f,
+        @location(3) tangent: vec3f,
+        @location(4) tangentSign: f32
     }
 
     struct CameraUniforms {
@@ -114,11 +117,25 @@ export function meshShader(): string {
         var output: VertexOutput;
         let mvp = cameraUniforms.projectionMatrix * cameraUniforms.viewMatrix * modelUniforms.modelMatrix;
 
-        let pos = input.position;
-        output.position = mvp * vec4f(pos, 1.0);
-        output.normal = input.normal;
+        let worldPos = modelUniforms.modelMatrix * vec4f(input.position, 1.0);
+        output.position = cameraUniforms.projectionMatrix *
+                  cameraUniforms.viewMatrix *
+                  worldPos;
+        output.fragPos = worldPos;
+
+        let worldNormal = normalize(
+            (modelUniforms.modelMatrix * vec4f(input.normal, 0.0)).xyz
+        );
+
+        let worldTangent = normalize(
+            (modelUniforms.modelMatrix * vec4f(input.tangent.xyz, 0.0)).xyz
+        );
+
+        output.normal = worldNormal;
+        output.tangent = worldTangent;
+        output.tangentSign = input.tangent.w;
         output.uv = input.uv;
-        output.fragPos = modelUniforms.modelMatrix * vec4f(pos, 1.0);
+
         return output;
     }
 
@@ -128,12 +145,19 @@ export function meshShader(): string {
         let normalColor = textureSample(normalTexture, normalSampler, input.uv);
         let mr = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);
 
+        let N = normalize(input.normal);
+        let T = normalize(input.tangent);
+        let B = normalize(cross(N, T) * input.tangentSign);
+        let tangentNormal = normalize(normalColor.xyz * 2.0 - vec3f(1.0));
+        let TBN = mat3x3f(T, B, N);
+        let worldNormal = normalize(TBN * tangentNormal);
+
         let roughness = mr.g;
         let metallic = mr.b;
         let shininess = mix(128.0, 4.0, roughness);
 
         let viewDir = normalize(cameraUniforms.cameraPosition.xyz - input.fragPos.xyz);
-        let norm = normalize(input.normal);
+        let norm = worldNormal;
         let lightDir = normalize(vec3f(0.5, 1.0, 0.3));
         let halfDir = normalize(lightDir + viewDir);
         let spec = pow(max(dot(norm, halfDir), 0.0), shininess);
