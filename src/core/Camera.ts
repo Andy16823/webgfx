@@ -1,4 +1,4 @@
-import { mat4, vec3, quat, vec2, vec4 } from 'gl-matrix';
+import { mat4, vec3, quat, vec2, vec4, mat3 } from 'gl-matrix';
 import { getRadians } from './Utils';
 
 const WORLD_FRONT = vec3.fromValues(0, 0, -1);
@@ -72,6 +72,33 @@ export class PerspectiveCamera implements Camera {
 
     getCameraPositionVec4(): vec4 {
         return vec4.fromValues(this.position[0], this.position[1], this.position[2], 1.0);
+    }
+
+    setCameraPosition(position: vec3): void {
+        this.position = position;
+    }
+
+    setCameraRotation(rotation: quat): void {
+        this.rotation = rotation;
+    }
+
+    lookAt(target: vec3): void {
+        const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), target, this.position));
+        let up = vec3.fromValues(0, 1, 0);
+
+        // Check for Gimbal Lock
+        if (Math.abs(vec3.dot(direction, up)) > 0.999) {
+            up = vec3.fromValues(0, 0, 1);
+        }
+
+        // Calculate the rotation quaternion
+        const right = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), up, direction));
+        const newUp = vec3.cross(vec3.create(), direction, right);
+        this.rotation = quat.fromMat3(quat.create(), mat3.fromValues(
+            right[0], right[1], right[2],
+            newUp[0], newUp[1], newUp[2],
+            direction[0], direction[1], direction[2]
+        ));
     }
 
     /**

@@ -7,6 +7,7 @@ import { meshShader } from './shader/Shaders';
 import GFXArrayBuffer from '@/core/GFXArrayBuffer';
 import GLTFLoader from '@/core/GLTFLoader';
 import Model from '@/core/Model';
+import { mat4 } from 'gl-matrix';
 
 export class Scene3D implements Scene {
     private camera = new PerspectiveCamera([0, 0, 5], 800 / 600);
@@ -18,6 +19,7 @@ export class Scene3D implements Scene {
     private cameraBindGroup: GPUBindGroup | null = null;
 
     async initialize(gfx: WebGFX): Promise<void> {
+        console.log("INIT SCENE");
         console.log("WebGFX initialized:", gfx);
 
         // Set up camera and transform
@@ -118,6 +120,13 @@ export class Scene3D implements Scene {
             if (material) {
                 material.bindMaterial(pass);
             }
+
+            const meshMatrix = mesh.getMeshMatrix();
+            const modelMatrix = this.transform.getModelMatrix();
+            const finalModelMatrix = mat4.create();
+            mat4.multiply(finalModelMatrix, modelMatrix, meshMatrix);
+            this.modelUniformBuffer?.update(new Float32Array([...finalModelMatrix]), gfx);
+
             pass.setVertexBuffer(0, mesh.getVertexBuffer()?.buffer!);
             pass.setIndexBuffer(mesh.getIndexBuffer()?.buffer!, 'uint32');
             pass.setBindGroup(0, this.cameraBindGroup!);

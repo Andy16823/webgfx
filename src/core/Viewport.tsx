@@ -65,6 +65,7 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
         let lastFrameTime = performance.now();
 
         const init = async () => {
+            console.log("INIT VIEWPORT");
             const gfx = await WebGFX.create(canvas);
             if (disposed) return;
 

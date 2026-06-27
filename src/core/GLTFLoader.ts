@@ -5,6 +5,7 @@ import GFXArrayBuffer from "@/core/GFXArrayBuffer";
 import { WebGFX } from "@/core/WebGFX";
 import Material from "@/core/Material";
 import Texture from "@/core/Texture";
+import { quat, vec3 } from "gl-matrix";
 
 /**
  * Class representing a GLTF buffer, which contains the URI and byte length of the buffer data.
@@ -78,61 +79,61 @@ export default class GLTFLoader {
      * a default texture will be created and used for that slot.
      */
     async readMaterials(gltf: any, basePath: string, gfx: WebGFX): Promise<Material[]> {
-        let materials = await Promise.all(
-            gltf.materials.map(async (material: any) => {
-                let gfxMaterial = new Material(material.name || "Unnamed Material");
+        const materials: Material[] = [];
 
-                // Load base color texture if available or create a default white texture
-                const baseColorTextureSrc = material.pbrMetallicRoughness?.baseColorTexture?.index !== undefined
-                    ? `${basePath}/${gltf.images[material.pbrMetallicRoughness.baseColorTexture.index].uri}`
-                    : undefined;
+        for (const material of gltf.materials) {
+            let gfxMaterial = new Material(material.name || "Unnamed Material");
 
-                if (baseColorTextureSrc) {
-                    const baseColorImage = new Image();
-                    baseColorImage.src = baseColorTextureSrc;
-                    await baseColorImage.decode();
-                    const baseColorTexture = Texture.fromImage(gfx, baseColorImage);
-                    gfxMaterial.setAlbedoTexture(baseColorTexture);
-                } else {
-                    const defaultTexture = Texture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
-                    gfxMaterial.setAlbedoTexture(defaultTexture);
-                }
+            // Load base color texture if available or create a default white texture
+            const baseColorTextureSrc = material.pbrMetallicRoughness?.baseColorTexture?.index !== undefined
+                ? `${basePath}/${gltf.images[material.pbrMetallicRoughness.baseColorTexture.index].uri}`
+                : undefined;
 
-                // Load normal map texture if available or create a default normal map texture
-                const normalMapTexture = material.normalTexture?.index !== undefined
-                    ? `${basePath}/${gltf.images[material.normalTexture.index].uri}`
-                    : undefined;
-
-                if (normalMapTexture) {
-                    const normalMapImage = new Image();
-                    normalMapImage.src = normalMapTexture;
-                    await normalMapImage.decode();
-                    const normalMapTextureObj = Texture.fromImage(gfx, normalMapImage);
-                    gfxMaterial.setNormalTexture(normalMapTextureObj);
-                } else {
-                    const defaultNormalTexture = Texture.fromColor(gfx, 1, 1, [128, 128, 255, 255]);
-                    gfxMaterial.setNormalTexture(defaultNormalTexture);
-                }
-
-                // Load metallic-roughness texture if available or create a default metallic-roughness texture
-                const metallicRoughnessTexture = material.pbrMetallicRoughness?.metallicRoughnessTexture?.index !== undefined
-                    ? `${basePath}/${gltf.images[material.pbrMetallicRoughness.metallicRoughnessTexture.index].uri}`
-                    : undefined;
-
-                if (metallicRoughnessTexture) {
-                    const metallicRoughnessImage = new Image();
-                    metallicRoughnessImage.src = metallicRoughnessTexture;
-                    await metallicRoughnessImage.decode();
-                    const metallicRoughnessTextureObj = Texture.fromImage(gfx, metallicRoughnessImage);
-                    gfxMaterial.setMetallicRoughnessTexture(metallicRoughnessTextureObj);
-                } else {
-                    const defaultMetallicRoughnessTexture = Texture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
-                    gfxMaterial.setMetallicRoughnessTexture(defaultMetallicRoughnessTexture);
-                }
-
-                return gfxMaterial;
+            if (baseColorTextureSrc) {
+                const baseColorImage = new Image();
+                baseColorImage.src = baseColorTextureSrc;
+                await baseColorImage.decode();
+                const baseColorTexture = Texture.fromImage(gfx, baseColorImage);
+                gfxMaterial.setAlbedoTexture(baseColorTexture);
+            } else {
+                const defaultTexture = Texture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
+                gfxMaterial.setAlbedoTexture(defaultTexture);
             }
-            ));
+
+            // Load normal map texture if available or create a default normal map texture
+            const normalMapTexture = material.normalTexture?.index !== undefined
+                ? `${basePath}/${gltf.images[material.normalTexture.index].uri}`
+                : undefined;
+
+            if (normalMapTexture) {
+                const normalMapImage = new Image();
+                normalMapImage.src = normalMapTexture;
+                await normalMapImage.decode();
+                const normalMapTextureObj = Texture.fromImage(gfx, normalMapImage);
+                gfxMaterial.setNormalTexture(normalMapTextureObj);
+            } else {
+                const defaultNormalTexture = Texture.fromColor(gfx, 1, 1, [128, 128, 255, 255]);
+                gfxMaterial.setNormalTexture(defaultNormalTexture);
+            }
+
+            // Load metallic-roughness texture if available or create a default metallic-roughness texture
+            const metallicRoughnessTexture = material.pbrMetallicRoughness?.metallicRoughnessTexture?.index !== undefined
+                ? `${basePath}/${gltf.images[material.pbrMetallicRoughness.metallicRoughnessTexture.index].uri}`
+                : undefined;
+
+            if (metallicRoughnessTexture) {
+                const metallicRoughnessImage = new Image();
+                metallicRoughnessImage.src = metallicRoughnessTexture;
+                await metallicRoughnessImage.decode();
+                const metallicRoughnessTextureObj = Texture.fromImage(gfx, metallicRoughnessImage);
+                gfxMaterial.setMetallicRoughnessTexture(metallicRoughnessTextureObj);
+            } else {
+                const defaultMetallicRoughnessTexture = Texture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
+                gfxMaterial.setMetallicRoughnessTexture(defaultMetallicRoughnessTexture);
+            }
+
+            materials.push(gfxMaterial);
+        }
         return materials;
     }
 
@@ -150,10 +151,18 @@ export default class GLTFLoader {
             const name = node.name || "Unnamed Node";
             const meshIndex = node.mesh;
 
+            // Load the node's transformation data (position, rotation, scale) or use default values
+            const position = (node.translation || [0, 0, 0]) as [number, number, number];
+            const rotation = (node.rotation || [0, 0, 0, 1]) as [number, number, number, number];
+            const scale = (node.scale || [1, 1, 1]) as [number, number, number];
+
             // Load the mesh from the node
             const mesh = gltf.meshes[meshIndex];
-            mesh.primitives.forEach((primitive: any) => {
+            mesh?.primitives?.forEach((primitive: any) => {
                 let gfxMesh = new Mesh(name);
+                gfxMesh.setPosition(vec3.fromValues(...position));
+                gfxMesh.setRotation(quat.fromValues(...rotation));
+                gfxMesh.setScale(vec3.fromValues(...scale));
                 if (primitive.material !== undefined) {
                     gfxMesh.setMaterialIndex(primitive.material);
                 }
