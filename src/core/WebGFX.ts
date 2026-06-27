@@ -2,11 +2,13 @@ export class WebGFX {
     device: GPUDevice;
     context: GPUCanvasContext;
     format: GPUTextureFormat;
+    depthTexture: GPUTexture;
 
-    constructor(device: GPUDevice, context: GPUCanvasContext, format: GPUTextureFormat) {
+    constructor(device: GPUDevice, context: GPUCanvasContext, format: GPUTextureFormat, depthTexture: GPUTexture) {
         this.device = device;
         this.context = context;
         this.format = format;
+        this.depthTexture = depthTexture;
     }
 
     /**
@@ -45,8 +47,14 @@ export class WebGFX {
             alphaMode: 'opaque',
         });
 
-        // Return a new instance of WebGFX with the initialized device, context, and format
-        return new WebGFX(device, context, format);
+        const depthTexture = device.createTexture({
+            size: [canvas.width, canvas.height],
+            format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        // Return a new instance of WebGFX with the initialized device, context, format, and depth texture
+        return new WebGFX(device, context, format, depthTexture);
     }
 
     /**
@@ -64,6 +72,12 @@ export class WebGFX {
                 loadOp: 'clear',
                 storeOp: 'store',
             }],
+            depthStencilAttachment: {
+                view: this.depthTexture.createView(),
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+            }
         });
 
         return { encoder, renderPass };

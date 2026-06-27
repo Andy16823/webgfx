@@ -24,6 +24,7 @@ interface PipelineDescriptor {
     vertex: VertexBindingPoint;
     fragment: FragmentBindingPoint;
     primitive: GPUPrimitiveState;
+    depthStencil: GPUDepthStencilState;
 }
 
 /**
@@ -35,6 +36,7 @@ interface PipelineDescriptor {
 export default function PipelineBuilder(pipelineDescriptor: PipelineDescriptor, gfx: WebGFX): GPURenderPipeline {
     return gfx.device.createRenderPipeline({
         layout: 'auto',
+        depthStencil: pipelineDescriptor.depthStencil,
         vertex: {
             module: pipelineDescriptor.vertex.module,
             entryPoint: pipelineDescriptor.vertex.entryPoint,

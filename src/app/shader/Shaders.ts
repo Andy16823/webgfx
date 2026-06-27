@@ -71,7 +71,8 @@ export function meshShader(): string {
     struct VertexOutput {
         @builtin(position) position: vec4f,
         @location(0) normal: vec3f,
-        @location(1) uv: vec2f
+        @location(1) uv: vec2f,
+        @location(2) fragPos: vec4f
     }
 
     struct CameraUniforms {
@@ -116,6 +117,7 @@ export function meshShader(): string {
         output.position = mvp * vec4f(pos, 1.0);
         output.normal = input.normal;
         output.uv = input.uv;
+        output.fragPos = modelUniforms.modelMatrix * vec4f(pos, 1.0);
         return output;
     }
 
@@ -124,7 +126,14 @@ export function meshShader(): string {
         let albedoColor = textureSample(albedoTexture, albedoSampler, input.uv);
         let normalColor = textureSample(normalTexture, normalSampler, input.uv);
         let metallicRoughnessColor = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);
-        return normalColor;
+
+        let norm = normalize(input.normal);
+        let lightDir = normalize(vec3f(0.5, 1.0, 0.3));
+        let diff = max(dot(norm, lightDir), 0.0);
+        let diffuse = diff * vec3f(1.0, 1.0, 1.0);
+
+        let result = albedoColor * vec4f(diffuse, 1.0);
+        return result;
     }
     `;
 }

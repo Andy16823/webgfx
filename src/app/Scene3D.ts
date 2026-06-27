@@ -74,6 +74,12 @@ export class Scene3D implements Scene {
             },
             primitive: {
                 topology: 'triangle-list',
+                cullMode: 'none'
+            },
+            depthStencil: {
+                format: 'depth24plus',
+                depthWriteEnabled: true,
+                depthCompare: 'less',
             }
         }, gfx);
 
@@ -111,7 +117,7 @@ export class Scene3D implements Scene {
                 material.bindMaterial(pass);
             }
             pass.setVertexBuffer(0, mesh.getVertexBuffer()?.buffer!);
-            pass.setIndexBuffer(mesh.getIndexBuffer()?.buffer!, 'uint16');
+            pass.setIndexBuffer(mesh.getIndexBuffer()?.buffer!, 'uint32');
             pass.setBindGroup(0, this.cameraBindGroup!);
             pass.drawIndexed(mesh.getIndexCount());
         });

@@ -92,6 +92,11 @@ export class Scene2D implements Scene {
             },
             primitive: {
                 topology: 'triangle-list',
+            },
+            depthStencil: {
+                format: 'depth24plus',
+                depthWriteEnabled: false, // For 2D rendering, we typically don't need depth testing
+                depthCompare: 'less',
             }
         }, gfx);
 

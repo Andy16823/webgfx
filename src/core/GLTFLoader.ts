@@ -219,7 +219,8 @@ export default class GLTFLoader {
                 const gltfIndexBuffer = buffers[indexBufferView.buffer];
                 console.log("GLTF Index Buffer:", gltfIndexBuffer);
                 if (gltfIndexBuffer && gltfIndexBuffer.buffer) {
-                    const indexData = new Uint16Array(gltfIndexBuffer.buffer, indexBufferView.byteOffset, indexAccessor.count);
+                    const indexData16 = new Uint16Array(gltfIndexBuffer.buffer, indexBufferView.byteOffset, indexAccessor.count);
+                    const indexData = new Uint32Array(indexData16);
                     const indexBuffer = new GFXArrayBuffer(indexData, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, gfx);
                     gfxMesh.setIndexBuffer(indexBuffer, indexAccessor.count);
                 } else {
