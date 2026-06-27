@@ -33,9 +33,11 @@ export class Scene3D implements Scene {
         // Create uniform buffer for camera
         const viewMatrix = this.camera.getViewMatrix();
         const projectionMatrix = this.camera.getProjectionMatrix();
+        const cameraPosition = this.camera.getCameraPositionVec4();
         const cameraUniformData = new Float32Array([
             ...viewMatrix,
-            ...projectionMatrix
+            ...projectionMatrix,
+            ...cameraPosition
         ]);
         this.cameraUniformBuffer = new GFXArrayBuffer(cameraUniformData, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, gfx);
 
@@ -98,7 +100,7 @@ export class Scene3D implements Scene {
                     resource: {
                         buffer: this.modelUniformBuffer?.buffer
                     }
-                }
+                },
             ]
         });
 
@@ -136,6 +138,18 @@ export class Scene3D implements Scene {
             const modelMatrix = this.transform.getModelMatrix();
             const modelUniformData = new Float32Array([...modelMatrix]);
             this.modelUniformBuffer.update(modelUniformData, gfx);
+        }
+
+        if (this.cameraUniformBuffer) {
+            const viewMatrix = this.camera.getViewMatrix();
+            const projectionMatrix = this.camera.getProjectionMatrix();
+            const cameraPosition = this.camera.getCameraPositionVec4();
+            const cameraUniformData = new Float32Array([
+                ...viewMatrix,
+                ...projectionMatrix,
+                ...cameraPosition
+            ]);
+            this.cameraUniformBuffer.update(cameraUniformData, gfx);
         }
     }
 }

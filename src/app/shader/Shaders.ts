@@ -77,7 +77,8 @@ export function meshShader(): string {
 
     struct CameraUniforms {
         viewMatrix: mat4x4f,
-        projectionMatrix: mat4x4f
+        projectionMatrix: mat4x4f,
+        cameraPosition: vec4f
     }
 
     struct ModelUniforms {
@@ -125,15 +126,25 @@ export function meshShader(): string {
     fn fs_main(input: VertexOutput) -> @location(0) vec4f {
         let albedoColor = textureSample(albedoTexture, albedoSampler, input.uv);
         let normalColor = textureSample(normalTexture, normalSampler, input.uv);
-        let metallicRoughnessColor = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);
+        let mr = textureSample(metallicRoughnessTexture, metallicRoughnessSampler, input.uv);
 
+        let roughness = mr.g;
+        let metallic = mr.b;
+        let shininess = mix(128.0, 4.0, roughness);
+
+        let viewDir = normalize(cameraUniforms.cameraPosition.xyz - input.fragPos.xyz);
         let norm = normalize(input.normal);
         let lightDir = normalize(vec3f(0.5, 1.0, 0.3));
+        let halfDir = normalize(lightDir + viewDir);
+        let spec = pow(max(dot(norm, halfDir), 0.0), shininess);
+        let specularStrength = mix(0.04, 1.0, metallic);
+        let specular = specularStrength * spec * vec3f(1.0);
         let diff = max(dot(norm, lightDir), 0.0);
         let diffuse = diff * vec3f(1.0, 1.0, 1.0);
 
-        let result = albedoColor * vec4f(diffuse, 1.0);
-        return result;
+        let ambient = 0.1 * albedoColor.rgb;
+        let result = ambient + diffuse * albedoColor.rgb + specular;
+        return vec4f(result, 1.0);
     }
     `;
 }

@@ -1,4 +1,4 @@
-import { mat4, vec3, quat, vec2 } from 'gl-matrix';
+import { mat4, vec3, quat, vec2, vec4 } from 'gl-matrix';
 import { getRadians } from './Utils';
 
 const WORLD_FRONT = vec3.fromValues(0, 0, -1);
@@ -64,6 +64,14 @@ export class PerspectiveCamera implements Camera {
      */
     getCameraFront(): vec3 {
         return vec3.transformQuat(vec3.create(), WORLD_FRONT, this.rotation);
+    }
+
+    getCameraPosition(): vec3 {
+        return this.position;
+    }
+
+    getCameraPositionVec4(): vec4 {
+        return vec4.fromValues(this.position[0], this.position[1], this.position[2], 1.0);
     }
 
     /**
