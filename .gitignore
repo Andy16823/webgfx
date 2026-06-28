@@ -20,6 +20,10 @@
 # production
 /build
 
+# package artifacts
+*.tgz
+*.tar.gz
+
 # misc
 .DS_Store
 *.pem
