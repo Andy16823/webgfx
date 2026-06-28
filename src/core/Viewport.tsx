@@ -28,6 +28,9 @@ interface ViewportProps {
     width?: number;
     height?: number;
     mode?: ViewportMode;
+    onKeyDown?: (event: KeyboardEvent) => void;
+    onMouseMove?: (event: MouseEvent) => void;
+    onMouseDown?: (event: MouseEvent) => void;
 }
 
 /**
@@ -35,7 +38,7 @@ interface ViewportProps {
  * @param param0 - The properties for the Viewport component, including the renderer, invalidateSignal, width, height, and mode.
  * @returns A canvas element that serves as the rendering surface for the specified Scene.
  */
-export default function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = ViewportMode.OnDemand }: ViewportProps) {
+export default function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = ViewportMode.OnDemand, onKeyDown, onMouseMove, onMouseDown }: ViewportProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gfxRef = useRef<WebGFX | null>(null);
 
@@ -69,6 +72,27 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
             const gfx = await WebGFX.create(canvas);
             if (disposed) return;
 
+            if (onKeyDown) {
+                const handleKeyDown = (event: KeyboardEvent) => {
+                    onKeyDown(event);
+                };
+                window.addEventListener('keydown', handleKeyDown);
+            }
+
+            if (onMouseMove) {
+                const handleMouseMove = (event: MouseEvent) => {
+                    onMouseMove(event);
+                };
+                window.addEventListener('mousemove', handleMouseMove);
+            }
+
+            if (onMouseDown) {
+                const handleMouseDown = (event: MouseEvent) => {
+                    onMouseDown(event);
+                };
+                window.addEventListener('mousedown', handleMouseDown);
+            }
+
             gfxRef.current = gfx;
             await scene.initialize(gfx);
 
@@ -101,6 +125,15 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
             }
             else {
                 console.warn("WebGFX instance not initialized; cannot dispose scene.");
+            }
+            if (onKeyDown) {
+                window.removeEventListener('keydown', onKeyDown);
+            }
+            if (onMouseMove) {
+                window.removeEventListener('mousemove', onMouseMove);
+            }
+            if (onMouseDown) {
+                window.removeEventListener('mousedown', onMouseDown);
             }
         }
     }, [scene, mode]);

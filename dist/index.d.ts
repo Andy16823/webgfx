@@ -531,13 +531,16 @@ interface ViewportProps {
     width?: number;
     height?: number;
     mode?: ViewportMode;
+    onKeyDown?: (event: KeyboardEvent) => void;
+    onMouseMove?: (event: MouseEvent) => void;
+    onMouseDown?: (event: MouseEvent) => void;
 }
 /**
  * Viewport is a React component that provides a canvas for rendering graphics using WebGFX and a specified Renderer.
  * @param param0 - The properties for the Viewport component, including the renderer, invalidateSignal, width, height, and mode.
  * @returns A canvas element that serves as the rendering surface for the specified Scene.
  */
-declare function Viewport({ scene, invalidateSignal, width, height, mode }: ViewportProps): react.JSX.Element;
+declare function Viewport({ scene, invalidateSignal, width, height, mode, onKeyDown, onMouseMove, onMouseDown }: ViewportProps): react.JSX.Element;
 
 /**
  * Converts degrees to radians.

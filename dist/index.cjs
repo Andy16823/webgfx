@@ -1033,7 +1033,7 @@ var ViewportMode = /* @__PURE__ */ ((ViewportMode2) => {
   ViewportMode2[ViewportMode2["OnDemand"] = 1] = "OnDemand";
   return ViewportMode2;
 })(ViewportMode || {});
-function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1 /* OnDemand */ }) {
+function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1 /* OnDemand */, onKeyDown, onMouseMove, onMouseDown }) {
   const canvasRef = (0, import_react.useRef)(null);
   const gfxRef = (0, import_react.useRef)(null);
   const renderFrame = () => {
@@ -1053,6 +1053,24 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
       console.log("INIT VIEWPORT");
       const gfx = await WebGFX.create(canvas);
       if (disposed) return;
+      if (onKeyDown) {
+        const handleKeyDown = (event) => {
+          onKeyDown(event);
+        };
+        window.addEventListener("keydown", handleKeyDown);
+      }
+      if (onMouseMove) {
+        const handleMouseMove = (event) => {
+          onMouseMove(event);
+        };
+        window.addEventListener("mousemove", handleMouseMove);
+      }
+      if (onMouseDown) {
+        const handleMouseDown = (event) => {
+          onMouseDown(event);
+        };
+        window.addEventListener("mousedown", handleMouseDown);
+      }
       gfxRef.current = gfx;
       await scene.initialize(gfx);
       if (mode === 1 /* OnDemand */) {
@@ -1078,6 +1096,15 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
         scene.dispose(gfxRef.current);
       } else {
         console.warn("WebGFX instance not initialized; cannot dispose scene.");
+      }
+      if (onKeyDown) {
+        window.removeEventListener("keydown", onKeyDown);
+      }
+      if (onMouseMove) {
+        window.removeEventListener("mousemove", onMouseMove);
+      }
+      if (onMouseDown) {
+        window.removeEventListener("mousedown", onMouseDown);
       }
     };
   }, [scene, mode]);
