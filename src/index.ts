@@ -10,6 +10,7 @@ export type { default as GFXBuffer } from "./core/GFXBuffer";
 export { default as GFXArrayBuffer } from "./core/GFXArrayBuffer";
 export { default as GLTFLoader } from "./core/GLTFLoader";
 export { default as PipelineBuilder } from "./core/PipelineBuilder";
+export { default as MeshBuilder } from "./core/MeshBuilder";
 export { default as Viewport, ViewportMode } from "./core/Viewport";
 export {
   getRadians,

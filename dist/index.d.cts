@@ -552,6 +552,60 @@ interface PipelineDescriptor {
 declare function PipelineBuilder(pipelineDescriptor: PipelineDescriptor, gfx: WebGFX): GPURenderPipeline;
 
 /**
+ * MeshBuilder is a utility class for constructing 3D meshes by accumulating vertex and index data.
+ * It provides methods to add vertices, triangles, and quads, and finally build a GFXMesh object.
+ * The builder maintains internal arrays for vertices and indices, which are used to create GPU buffers.
+ */
+declare class MeshBuilder {
+    private vertices;
+    private indices;
+    private vertexCount;
+    /**
+     * Adds a vertex to the mesh.
+     * @param position - The position of the vertex as a vec3.
+     * @param normal - The normal of the vertex as a vec3.
+     * @param uv - The texture coordinates of the vertex as a vec2.
+     * @param tangent - The tangent of the vertex as a vec4.
+     */
+    addVertex4(position: vec3, normal: vec3, uv: vec2, tangent: vec4): void;
+    /**
+     * Adds a vertex to the mesh with a default tangent value.
+     * @param position - The position of the vertex as a vec3.
+     * @param normal - The normal of the vertex as a vec3.
+     * @param uv - The texture coordinates of the vertex as a vec2.
+     */
+    addVertex3(position: vec3, normal: vec3, uv: vec2): void;
+    /**
+     * Adds a vertex to the mesh with a default normal and tangent value.
+     * @param position - The position of the vertex as a vec3.
+     * @param uv - The texture coordinates of the vertex as a vec2.
+     */
+    addVertex2(position: vec3, uv: vec2): void;
+    /**
+     * Adds a triangle to the mesh by specifying the indices of its vertices.
+     * @param i0 - The index of the first vertex.
+     * @param i1 - The index of the second vertex.
+     * @param i2 - The index of the third vertex.
+     */
+    addTriangle(i0: number, i1: number, i2: number): void;
+    /**
+     * Adds a quad to the mesh by specifying the indices of its vertices.
+     * @param i0 - The index of the first vertex.
+     * @param i1 - The index of the second vertex.
+     * @param i2 - The index of the third vertex.
+     * @param i3 - The index of the fourth vertex.
+     */
+    addQuad(i0: number, i1: number, i2: number, i3: number): void;
+    /**
+     * Builds a GFXMesh from the accumulated vertices and indices.
+     * @param name - The name of the mesh.
+     * @param gfx - The WebGFX instance used to create the mesh buffers.
+     * @returns A GFXMesh instance containing the vertex and index buffers.
+     */
+    buildMesh(name: string, gfx: WebGFX): GFXMesh;
+}
+
+/**
  * ViewportMode defines the rendering mode for the Viewport component.
  * Continuous: The renderer continuously updates and renders frames.
  * OnDemand: The renderer only updates and renders frames when the invalidateSignal changes.
@@ -575,8 +629,8 @@ interface ViewportProps {
     height?: number;
     mode?: ViewportMode;
     onKeyDown?: (event: KeyboardEvent) => void;
-    onMouseMove?: (event: MouseEvent) => void;
-    onMouseDown?: (event: MouseEvent) => void;
+    onMouseMove?: (event: MouseEvent, relativeX: number, relativeY: number) => void;
+    onMouseDown?: (event: MouseEvent, relativeX: number, relativeY: number) => void;
 }
 /**
  * Viewport is a React component that provides a canvas for rendering graphics using WebGFX and a specified Renderer.
@@ -611,4 +665,4 @@ declare function getDefaultMetallicRoughnessColor(): [number, number, number, nu
 declare function defaultShader(): string;
 declare function meshShader(): string;
 
-export { GFXArrayBuffer, type GFXBuffer, GLTFLoader, GFXMaterial as Material, GFXMesh as Mesh, GFXModel as Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, GFXTexture as Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler };
+export { GFXArrayBuffer, type GFXBuffer, GLTFLoader, GFXMaterial as Material, GFXMesh as Mesh, MeshBuilder, GFXModel as Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, GFXTexture as Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler };

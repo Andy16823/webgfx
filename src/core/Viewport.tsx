@@ -29,8 +29,8 @@ interface ViewportProps {
     height?: number;
     mode?: ViewportMode;
     onKeyDown?: (event: KeyboardEvent) => void;
-    onMouseMove?: (event: MouseEvent) => void;
-    onMouseDown?: (event: MouseEvent) => void;
+    onMouseMove?: (event: MouseEvent, relativeX: number, relativeY: number) => void;
+    onMouseDown?: (event: MouseEvent, relativeX: number, relativeY: number) => void;
 }
 
 /**
@@ -57,6 +57,50 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
     }
 
     /**
+     * Handles mouse movement events on the canvas and calculates the relative mouse position.
+     * If an onMouseMove callback is provided, it is called with the event and the relative mouse coordinates.
+     * @param event - The MouseEvent triggered by mouse movement.
+     */
+    const handleMouseMove = (event: MouseEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const relativeX = event.clientX - canvas.getBoundingClientRect().left;
+        const relativeY = event.clientY - canvas.getBoundingClientRect().top;
+        if (onMouseMove) {
+            onMouseMove(event, relativeX, relativeY);
+        }
+    };
+
+    /**
+     * Handles mouse down events on the canvas and calculates the relative mouse position.
+     * If an onMouseDown callback is provided, it is called with the event and the relative mouse coordinates.
+     * @param event - The MouseEvent triggered by mouse button press.
+     * @returns void
+     */
+    const handleMouseDown = (event: MouseEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const relativeX = event.clientX - canvas.getBoundingClientRect().left;
+        const relativeY = event.clientY - canvas.getBoundingClientRect().top;
+        if (onMouseDown) {
+            onMouseDown(event, relativeX, relativeY);
+        }
+    };
+
+    /**
+     * Handles key down events and calls the provided onKeyDown callback if it exists.
+     * @param event - The KeyboardEvent triggered by a key press.
+     * @returns void
+     */
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (onKeyDown) {
+            onKeyDown(event);
+        }
+    };
+
+    /**
      * Initializes the WebGFX instance and the scene when the component mounts.
      */
     useEffect(() => {
@@ -67,31 +111,14 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
         let disposed = false;
         let lastFrameTime = performance.now();
 
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousedown', handleMouseDown);
+
         const init = async () => {
             console.log("INIT VIEWPORT");
             const gfx = await WebGFX.create(canvas);
             if (disposed) return;
-
-            if (onKeyDown) {
-                const handleKeyDown = (event: KeyboardEvent) => {
-                    onKeyDown(event);
-                };
-                window.addEventListener('keydown', handleKeyDown);
-            }
-
-            if (onMouseMove) {
-                const handleMouseMove = (event: MouseEvent) => {
-                    onMouseMove(event);
-                };
-                window.addEventListener('mousemove', handleMouseMove);
-            }
-
-            if (onMouseDown) {
-                const handleMouseDown = (event: MouseEvent) => {
-                    onMouseDown(event);
-                };
-                window.addEventListener('mousedown', handleMouseDown);
-            }
 
             gfxRef.current = gfx;
             await scene.initialize(gfx);
@@ -118,6 +145,10 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
         init();
 
         return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mousedown', handleMouseDown);
+
             disposed = true;
             cancelAnimationFrame(frameId);
             if (gfxRef.current) {
@@ -125,15 +156,6 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
             }
             else {
                 console.warn("WebGFX instance not initialized; cannot dispose scene.");
-            }
-            if (onKeyDown) {
-                window.removeEventListener('keydown', onKeyDown);
-            }
-            if (onMouseMove) {
-                window.removeEventListener('mousemove', onMouseMove);
-            }
-            if (onMouseDown) {
-                window.removeEventListener('mousedown', onMouseDown);
             }
         }
     }, [scene, mode]);

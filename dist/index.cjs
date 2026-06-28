@@ -24,6 +24,7 @@ __export(index_exports, {
   GLTFLoader: () => GLTFLoader,
   Material: () => GFXMaterial,
   Mesh: () => GFXMesh,
+  MeshBuilder: () => MeshBuilder,
   Model: () => GFXModel,
   OrthographicCamera: () => OrthographicCamera,
   PerspectiveCamera: () => PerspectiveCamera,
@@ -1068,6 +1069,85 @@ function PipelineBuilder(pipelineDescriptor, gfx) {
   });
 }
 
+// src/core/MeshBuilder.ts
+var import_gl_matrix5 = require("gl-matrix");
+var MeshBuilder = class {
+  constructor() {
+    this.vertices = [];
+    this.indices = [];
+    this.vertexCount = 0;
+  }
+  /**
+   * Adds a vertex to the mesh.
+   * @param position - The position of the vertex as a vec3.
+   * @param normal - The normal of the vertex as a vec3.
+   * @param uv - The texture coordinates of the vertex as a vec2.
+   * @param tangent - The tangent of the vertex as a vec4.
+   */
+  addVertex4(position, normal, uv, tangent) {
+    this.vertices.push(...position, ...normal, ...uv, ...tangent);
+    this.vertexCount++;
+  }
+  /**
+   * Adds a vertex to the mesh with a default tangent value.
+   * @param position - The position of the vertex as a vec3.
+   * @param normal - The normal of the vertex as a vec3.
+   * @param uv - The texture coordinates of the vertex as a vec2.
+   */
+  addVertex3(position, normal, uv) {
+    const tangent = import_gl_matrix5.vec4.fromValues(1, 0, 0, 1);
+    this.addVertex4(position, normal, uv, tangent);
+  }
+  /**
+   * Adds a vertex to the mesh with a default normal and tangent value.
+   * @param position - The position of the vertex as a vec3.
+   * @param uv - The texture coordinates of the vertex as a vec2.
+   */
+  addVertex2(position, uv) {
+    const normal = import_gl_matrix5.vec3.fromValues(0, 0, 1);
+    this.addVertex3(position, normal, uv);
+  }
+  /**
+   * Adds a triangle to the mesh by specifying the indices of its vertices.
+   * @param i0 - The index of the first vertex.
+   * @param i1 - The index of the second vertex.
+   * @param i2 - The index of the third vertex.
+   */
+  addTriangle(i0, i1, i2) {
+    this.indices.push(i0, i1, i2);
+  }
+  /**
+   * Adds a quad to the mesh by specifying the indices of its vertices.
+   * @param i0 - The index of the first vertex.
+   * @param i1 - The index of the second vertex.
+   * @param i2 - The index of the third vertex.
+   * @param i3 - The index of the fourth vertex.
+   */
+  addQuad(i0, i1, i2, i3) {
+    this.addTriangle(i0, i1, i2);
+    this.addTriangle(i2, i3, i0);
+  }
+  /**
+   * Builds a GFXMesh from the accumulated vertices and indices.
+   * @param name - The name of the mesh.
+   * @param gfx - The WebGFX instance used to create the mesh buffers.
+   * @returns A GFXMesh instance containing the vertex and index buffers.
+   */
+  buildMesh(name, gfx) {
+    const mesh = new GFXMesh(name);
+    const vertexBufferData = new Float32Array(this.vertices);
+    const vertexBuffer = new GFXArrayBuffer(vertexBufferData, GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST, gfx);
+    const indexBufferData = new Uint32Array(this.indices);
+    const indexBuffer = new GFXArrayBuffer(indexBufferData, GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST, gfx);
+    mesh.setVertexBuffer(vertexBuffer);
+    mesh.setIndexBuffer(indexBuffer, this.indices.length);
+    this.vertices = [];
+    this.indices = [];
+    this.vertexCount = 0;
+    return mesh;
+  }
+};
+
 // src/core/Viewport.tsx
 var import_react = require("react");
 var import_jsx_runtime = require("react/jsx-runtime");
@@ -1086,34 +1166,42 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
     scene.render(gfx, renderPass);
     gfx.endFrame(encoder, renderPass);
   };
+  const handleMouseMove = (event) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const relativeX = event.clientX - canvas.getBoundingClientRect().left;
+    const relativeY = event.clientY - canvas.getBoundingClientRect().top;
+    if (onMouseMove) {
+      onMouseMove(event, relativeX, relativeY);
+    }
+  };
+  const handleMouseDown = (event) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const relativeX = event.clientX - canvas.getBoundingClientRect().left;
+    const relativeY = event.clientY - canvas.getBoundingClientRect().top;
+    if (onMouseDown) {
+      onMouseDown(event, relativeX, relativeY);
+    }
+  };
+  const handleKeyDown = (event) => {
+    if (onKeyDown) {
+      onKeyDown(event);
+    }
+  };
   (0, import_react.useEffect)(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     let frameId = 0;
     let disposed = false;
     let lastFrameTime = performance.now();
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousedown", handleMouseDown);
     const init = async () => {
       console.log("INIT VIEWPORT");
       const gfx = await WebGFX.create(canvas);
       if (disposed) return;
-      if (onKeyDown) {
-        const handleKeyDown = (event) => {
-          onKeyDown(event);
-        };
-        window.addEventListener("keydown", handleKeyDown);
-      }
-      if (onMouseMove) {
-        const handleMouseMove = (event) => {
-          onMouseMove(event);
-        };
-        window.addEventListener("mousemove", handleMouseMove);
-      }
-      if (onMouseDown) {
-        const handleMouseDown = (event) => {
-          onMouseDown(event);
-        };
-        window.addEventListener("mousedown", handleMouseDown);
-      }
       gfxRef.current = gfx;
       await scene.initialize(gfx);
       if (mode === 1 /* OnDemand */) {
@@ -1133,21 +1221,15 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
     };
     init();
     return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mousedown", handleMouseDown);
       disposed = true;
       cancelAnimationFrame(frameId);
       if (gfxRef.current) {
         scene.dispose(gfxRef.current);
       } else {
         console.warn("WebGFX instance not initialized; cannot dispose scene.");
-      }
-      if (onKeyDown) {
-        window.removeEventListener("keydown", onKeyDown);
-      }
-      if (onMouseMove) {
-        window.removeEventListener("mousemove", onMouseMove);
-      }
-      if (onMouseDown) {
-        window.removeEventListener("mousedown", onMouseDown);
       }
     };
   }, [scene, mode]);
@@ -1339,6 +1421,7 @@ function meshShader() {
   GLTFLoader,
   Material,
   Mesh,
+  MeshBuilder,
   Model,
   OrthographicCamera,
   PerspectiveCamera,
