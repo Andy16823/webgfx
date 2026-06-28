@@ -44,7 +44,7 @@ declare class WebGFX {
 interface Scene {
     initialize(gfx: WebGFX): Promise<void>;
     update(gfx: WebGFX, deltaTime: number): void;
-    render(gfx: WebGFX, pass: GPURenderPassEncoder): void;
+    render(gfx: WebGFX): void;
     dispose(gfx: WebGFX): void;
 }
 
@@ -640,6 +640,73 @@ interface ViewportProps {
 declare function Viewport({ scene, invalidateSignal, width, height, mode, onKeyDown, onMouseMove, onMouseDown }: ViewportProps): react.JSX.Element;
 
 /**
+ * Interface representing a render target in the WebGFX framework.
+ */
+interface GFXRenderTargetInterface {
+    startRenderPass(gfx: WebGFX): {
+        encoder: GPUCommandEncoder;
+        pass: GPURenderPassEncoder;
+    };
+    endRenderPass(gfx: WebGFX, pass: GPURenderPassEncoder, encoder: GPUCommandEncoder): void;
+    createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
+    bind(pass: GPURenderPassEncoder, group: number): void;
+    destroy(): void;
+}
+/**
+ * Class representing a render target in the WebGFX framework.
+ * A render target is a texture that can be rendered to, allowing for off-screen rendering and post-processing effects.
+ * It consists of a color texture and a depth texture, both of which are used during the rendering process.
+ */
+declare class GFXRenderTarget implements GFXRenderTargetInterface {
+    private renderTargetTexture;
+    private renderTargetView;
+    private renderTargetSampler;
+    private depthTexture;
+    private depthTextureView;
+    private bindGroup;
+    /**
+     * Creates an instance of GFXRenderTarget with the specified width and height.
+     * @param gfx - The WebGFX instance used to create the render target.
+     * @param width - The width of the render target in pixels.
+     * @param height - The height of the render target in pixels.
+     */
+    constructor(gfx: WebGFX, width: number, height: number);
+    /**
+     * Starts a render pass on the render target, returning the command encoder and render pass encoder.
+     * The render pass is configured with the render target's color and depth textures, and it clears both textures at the start of the pass.
+     * @param gfx - The WebGFX instance used to start the render pass.
+     * @returns An object containing the command encoder and render pass encoder for the render pass.
+     * @throws An error if the render target view is not created.
+     */
+    startRenderPass(gfx: WebGFX): {
+        encoder: GPUCommandEncoder;
+        pass: GPURenderPassEncoder;
+    };
+    /**
+     * Ends the render pass on the render target, submitting the command buffer to the GPU queue.
+     * @param gfx - The WebGFX instance used to end the render pass.
+     * @param pass - The render pass encoder used to record rendering commands for the render pass.
+     * @param encoder - The command encoder used to record GPU commands for the render pass.
+     */
+    endRenderPass(gfx: WebGFX, pass: GPURenderPassEncoder, encoder: GPUCommandEncoder): void;
+    /**
+     * Destroys the render target, releasing its resources.
+     * This method should be called when the render target is no longer needed to free up GPU memory.
+     */
+    destroy(): void;
+    /**
+     * Creates bind groups for the render target, allowing it to be used as a texture in shaders.
+     */
+    createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
+    /**
+     * Binds the render target's bind group to the specified render pass encoder and group index.
+     * @param pass - The GPURenderPassEncoder to which the bind group will be bound.
+     * @param group - The index of the bind group layout in the pipeline.
+     */
+    bind(pass: GPURenderPassEncoder, group: number): void;
+}
+
+/**
  * Converts degrees to radians.
  * @param degrees - The angle in degrees.
  * @returns The angle in radians.
@@ -663,6 +730,7 @@ declare function getDefaultNormalColor(): [number, number, number, number];
 declare function getDefaultMetallicRoughnessColor(): [number, number, number, number];
 
 declare function defaultShader(): string;
+declare function fullscreenQuadShader(): string;
 declare function meshShader(): string;
 
-export { GFXArrayBuffer, type GFXBuffer, GLTFLoader, GFXMaterial as Material, GFXMesh as Mesh, MeshBuilder, GFXModel as Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, GFXTexture as Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler };
+export { GFXArrayBuffer, type GFXBuffer, GFXRenderTarget, type GFXRenderTargetInterface, GLTFLoader, GFXMaterial as Material, GFXMesh as Mesh, MeshBuilder, GFXModel as Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, GFXTexture as Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, fullscreenQuadShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler };

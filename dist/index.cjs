@@ -21,6 +21,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   GFXArrayBuffer: () => GFXArrayBuffer,
+  GFXRenderTarget: () => GFXRenderTarget,
   GLTFLoader: () => GLTFLoader,
   Material: () => GFXMaterial,
   Mesh: () => GFXMesh,
@@ -35,6 +36,7 @@ __export(index_exports, {
   ViewportMode: () => ViewportMode,
   WebGFX: () => WebGFX,
   defaultShader: () => defaultShader,
+  fullscreenQuadShader: () => fullscreenQuadShader,
   getDefaultAlbedoColor: () => getDefaultAlbedoColor,
   getDefaultMetallicRoughnessColor: () => getDefaultMetallicRoughnessColor,
   getDefaultNormalColor: () => getDefaultNormalColor,
@@ -1162,9 +1164,7 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
   const renderFrame = () => {
     const gfx = gfxRef.current;
     if (!gfx) return;
-    const { encoder, renderPass } = gfx.beginFrame();
-    scene.render(gfx, renderPass);
-    gfx.endFrame(encoder, renderPass);
+    scene.render(gfx);
   };
   const handleMouseMove = (event) => {
     const canvas = canvasRef.current;
@@ -1241,6 +1241,108 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
   return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("canvas", { ref: canvasRef, width, height });
 }
 
+// src/core/GFXRenderTarget.ts
+var GFXRenderTarget = class {
+  /**
+   * Creates an instance of GFXRenderTarget with the specified width and height.
+   * @param gfx - The WebGFX instance used to create the render target.
+   * @param width - The width of the render target in pixels.
+   * @param height - The height of the render target in pixels.
+   */
+  constructor(gfx, width, height) {
+    this.bindGroup = null;
+    this.renderTargetTexture = gfx.device.createTexture({
+      size: [width, height],
+      format: gfx.format,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+    });
+    this.renderTargetView = this.renderTargetTexture.createView();
+    this.depthTexture = gfx.device.createTexture({
+      size: [width, height],
+      format: "depth24plus",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT
+    });
+    this.depthTextureView = this.depthTexture.createView();
+    this.renderTargetSampler = gfx.device.createSampler({
+      magFilter: "linear",
+      minFilter: "linear"
+    });
+  }
+  /**
+   * Starts a render pass on the render target, returning the command encoder and render pass encoder.
+   * The render pass is configured with the render target's color and depth textures, and it clears both textures at the start of the pass.
+   * @param gfx - The WebGFX instance used to start the render pass.
+   * @returns An object containing the command encoder and render pass encoder for the render pass.
+   * @throws An error if the render target view is not created.
+   */
+  startRenderPass(gfx) {
+    const encoder = gfx.device.createCommandEncoder();
+    const renderPass = encoder.beginRenderPass({
+      colorAttachments: [{
+        view: this.renderTargetView,
+        clearValue: { r: 0, g: 0, b: 0, a: 1 },
+        loadOp: "clear",
+        storeOp: "store"
+      }],
+      depthStencilAttachment: {
+        view: this.depthTextureView,
+        depthClearValue: 1,
+        depthLoadOp: "clear",
+        depthStoreOp: "store"
+      }
+    });
+    return { encoder, pass: renderPass };
+  }
+  /**
+   * Ends the render pass on the render target, submitting the command buffer to the GPU queue.
+   * @param gfx - The WebGFX instance used to end the render pass.
+   * @param pass - The render pass encoder used to record rendering commands for the render pass. 
+   * @param encoder - The command encoder used to record GPU commands for the render pass. 
+   */
+  endRenderPass(gfx, pass, encoder) {
+    pass.end();
+    gfx.device.queue.submit([encoder.finish()]);
+  }
+  /**
+   * Destroys the render target, releasing its resources.
+   * This method should be called when the render target is no longer needed to free up GPU memory.
+   */
+  destroy() {
+    this.renderTargetTexture.destroy();
+    this.depthTexture.destroy();
+  }
+  /**
+   * Creates bind groups for the render target, allowing it to be used as a texture in shaders.
+   */
+  createBindGroups(gfx, pipeline, groupIndex) {
+    this.bindGroup = gfx.device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(groupIndex),
+      entries: [
+        {
+          binding: 0,
+          resource: this.renderTargetView
+        },
+        {
+          binding: 1,
+          resource: this.renderTargetSampler
+        }
+      ]
+    });
+  }
+  /**
+   * Binds the render target's bind group to the specified render pass encoder and group index.
+   * @param pass - The GPURenderPassEncoder to which the bind group will be bound.
+   * @param group - The index of the bind group layout in the pipeline.
+   */
+  bind(pass, group) {
+    if (!this.bindGroup) {
+      console.error("Bind group is not created. Call createBindGroups() before binding.");
+      return;
+    }
+    pass.setBindGroup(group, this.bindGroup);
+  }
+};
+
 // src/shaders/Shaders.ts
 function defaultShader() {
   return `
@@ -1302,9 +1404,54 @@ function defaultShader() {
     }
     `;
 }
+function fullscreenQuadShader() {
+  return `
+    struct VertexOutput {
+        @builtin(position) position : vec4<f32>,
+        @location(0) uv : vec2<f32>,
+    };
+
+    @group(0) @binding(0)
+    var myTexture: texture_2d<f32>;
+
+    @group(0) @binding(1)
+    var mySampler: sampler;
+
+    @vertex
+    fn vs_main(@builtin(vertex_index) VertexIndex : u32) -> VertexOutput {
+        var output : VertexOutput;
+        var pos = array<vec2<f32>, 6>(
+            vec2<f32>(-1.0, -1.0),
+            vec2<f32>(1.0, -1.0),
+            vec2<f32>(-1.0, 1.0),
+            vec2<f32>(-1.0, 1.0),
+            vec2<f32>(1.0, -1.0),
+            vec2<f32>(1.0, 1.0)
+        );
+
+        var uv = array<vec2<f32>, 6>(
+            vec2<f32>(0.0, 1.0),
+            vec2<f32>(1.0, 1.0),
+            vec2<f32>(0.0, 0.0),
+            vec2<f32>(0.0, 0.0),
+            vec2<f32>(1.0, 1.0),
+            vec2<f32>(1.0, 0.0)
+        );
+
+        output.position = vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+        output.uv = uv[VertexIndex];
+        return output;
+    }
+
+    @fragment
+    fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+        let texColor = textureSample(myTexture, mySampler, input.uv);
+        return texColor;
+    }
+    `;
+}
 function meshShader() {
   return `
-
     struct VertexInput {
         @location(0) position: vec3f,
         @location(1) normal: vec3f,
@@ -1418,6 +1565,7 @@ function meshShader() {
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   GFXArrayBuffer,
+  GFXRenderTarget,
   GLTFLoader,
   Material,
   Mesh,
@@ -1432,6 +1580,7 @@ function meshShader() {
   ViewportMode,
   WebGFX,
   defaultShader,
+  fullscreenQuadShader,
   getDefaultAlbedoColor,
   getDefaultMetallicRoughnessColor,
   getDefaultNormalColor,

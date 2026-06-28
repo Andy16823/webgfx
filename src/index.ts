@@ -12,6 +12,8 @@ export { default as GLTFLoader } from "./core/GLTFLoader";
 export { default as PipelineBuilder } from "./core/PipelineBuilder";
 export { default as MeshBuilder } from "./core/MeshBuilder";
 export { default as Viewport, ViewportMode } from "./core/Viewport";
+export { default as GFXRenderTarget } from "./core/GFXRenderTarget";
+export type { GFXRenderTargetInterface } from "./core/GFXRenderTarget";
 export {
   getRadians,
   quatToEuler,
@@ -21,4 +23,4 @@ export {
   getDefaultMetallicRoughnessColor,
 } from "./core/Utils";
 
-export { defaultShader, meshShader } from "./shaders/Shaders";
+export { defaultShader, fullscreenQuadShader, meshShader } from "./shaders/Shaders";

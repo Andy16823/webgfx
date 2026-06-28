@@ -59,9 +59,55 @@ export function defaultShader(): string {
     `;
 }
 
+export function fullscreenQuadShader(): string {
+    return `
+    struct VertexOutput {
+        @builtin(position) position : vec4<f32>,
+        @location(0) uv : vec2<f32>,
+    };
+
+    @group(0) @binding(0)
+    var myTexture: texture_2d<f32>;
+
+    @group(0) @binding(1)
+    var mySampler: sampler;
+
+    @vertex
+    fn vs_main(@builtin(vertex_index) VertexIndex : u32) -> VertexOutput {
+        var output : VertexOutput;
+        var pos = array<vec2<f32>, 6>(
+            vec2<f32>(-1.0, -1.0),
+            vec2<f32>(1.0, -1.0),
+            vec2<f32>(-1.0, 1.0),
+            vec2<f32>(-1.0, 1.0),
+            vec2<f32>(1.0, -1.0),
+            vec2<f32>(1.0, 1.0)
+        );
+
+        var uv = array<vec2<f32>, 6>(
+            vec2<f32>(0.0, 1.0),
+            vec2<f32>(1.0, 1.0),
+            vec2<f32>(0.0, 0.0),
+            vec2<f32>(0.0, 0.0),
+            vec2<f32>(1.0, 1.0),
+            vec2<f32>(1.0, 0.0)
+        );
+
+        output.position = vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+        output.uv = uv[VertexIndex];
+        return output;
+    }
+
+    @fragment
+    fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+        let texColor = textureSample(myTexture, mySampler, input.uv);
+        return texColor;
+    }
+    `;
+}
+
 export function meshShader(): string {
     return `
-
     struct VertexInput {
         @location(0) position: vec3f,
         @location(1) normal: vec3f,

@@ -51,9 +51,9 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
         const gfx = gfxRef.current;
         if (!gfx) return;
 
-        const { encoder, renderPass } = gfx.beginFrame();
-        scene.render(gfx, renderPass);
-        gfx.endFrame(encoder, renderPass);
+        // const { encoder, renderPass } = gfx.beginFrame();
+        scene.render(gfx);
+        // gfx.endFrame(encoder, renderPass);
     }
 
     /**
