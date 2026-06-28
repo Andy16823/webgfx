@@ -3,7 +3,7 @@ import { WebGFX } from '@/core/WebGFX';
 /**
  * Interface representing a GPU buffer.
  */
-export default interface Buffer {
+export default interface GFXBuffer {
     buffer: GPUBuffer;
     size: number;
     usage: GPUBufferUsageFlags;

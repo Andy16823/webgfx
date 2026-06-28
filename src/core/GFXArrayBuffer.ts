@@ -1,11 +1,11 @@
-import Buffer from '@/core/Buffer';
+import GFXBuffer from '@/core/GFXBuffer';
 import { WebGFX } from '@/core/WebGFX';
 
 /**
  * Class representing a GPU array buffer.
  * It implements the Buffer interface and provides methods to create, update, and destroy GPU buffers.
  */
-export default class GFXArrayBuffer implements Buffer {
+export default class GFXArrayBuffer implements GFXBuffer {
     buffer: GPUBuffer;
     size: number;
     usage: GPUBufferUsageFlags;
@@ -13,11 +13,11 @@ export default class GFXArrayBuffer implements Buffer {
 
     /**
      * Creates an instance of GFXArrayBuffer.
-     * @param data - The initial data to populate the buffer with. It can be a Float32Array, Uint32Array, or Uint16Array.
+     * @param data - The initial data to populate the buffer with. It can be a Float32Array or Uint32Array.
      * @param usage - The usage flags for the GPU buffer, indicating how the buffer will be used (e.g., vertex buffer, index buffer).
      * @param gfx - The WebGFX instance used to create the GPU buffer.
      */
-    constructor(data: Float32Array | Uint32Array | Uint16Array, usage: GPUBufferUsageFlags, gfx: WebGFX) {
+    constructor(data: Float32Array | Uint32Array, usage: GPUBufferUsageFlags, gfx: WebGFX) {
         this.size = data.byteLength;
         this.usage = usage;
         this.mappedAtCreation = false;
