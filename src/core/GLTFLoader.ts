@@ -1,10 +1,10 @@
-import Model from "@/core/Model";
-import Mesh from "./Mesh";
+import Model from "@/core/GFXModel";
+import GFXMesh from "./GFXMesh";
 import { getParentPath } from "@/core/Utils";
 import GFXArrayBuffer from "@/core/GFXArrayBuffer";
 import { WebGFX } from "@/core/WebGFX";
-import Material from "@/core/Material";
-import Texture from "@/core/Texture";
+import GFXMaterial from "@/core/GFXMaterial";
+import Texture from "@/core/GFXTexture";
 import { quat, vec3 } from "gl-matrix";
 
 /**
@@ -78,11 +78,11 @@ export default class GLTFLoader {
      * remark: Every texture slots must be filled with a texture, if the gltf file does not have a texture for a slot, 
      * a default texture will be created and used for that slot.
      */
-    async readMaterials(gltf: any, basePath: string, gfx: WebGFX): Promise<Material[]> {
-        const materials: Material[] = [];
+    async readMaterials(gltf: any, basePath: string, gfx: WebGFX): Promise<GFXMaterial[]> {
+        const materials: GFXMaterial[] = [];
 
         for (const material of gltf.materials) {
-            let gfxMaterial = new Material(material.name || "Unnamed Material");
+            let gfxMaterial = new GFXMaterial(material.name || "Unnamed Material");
 
             // Load base color texture if available or create a default white texture
             const baseColorTextureSrc = material.pbrMetallicRoughness?.baseColorTexture?.index !== undefined
@@ -144,8 +144,8 @@ export default class GLTFLoader {
      * @param gfx - The WebGFX instance used for creating GPU buffers.
      * @returns An array of Mesh objects created from the parsed nodes in the GLTF file.
      */
-    parseNodes(gltf: any, buffers: GLTFBuffer[], gfx: WebGFX): Mesh[] {
-        const meshes: Mesh[] = [];
+    parseNodes(gltf: any, buffers: GLTFBuffer[], gfx: WebGFX): GFXMesh[] {
+        const meshes: GFXMesh[] = [];
 
         gltf.nodes.forEach((node: any) => {
             const name = node.name || "Unnamed Node";
@@ -159,7 +159,7 @@ export default class GLTFLoader {
             // Load the mesh from the node
             const mesh = gltf.meshes[meshIndex];
             mesh?.primitives?.forEach((primitive: any) => {
-                let gfxMesh = new Mesh(name);
+                let gfxMesh = new GFXMesh(name);
                 gfxMesh.setPosition(vec3.fromValues(...position));
                 gfxMesh.setRotation(quat.fromValues(...rotation));
                 gfxMesh.setScale(vec3.fromValues(...scale));

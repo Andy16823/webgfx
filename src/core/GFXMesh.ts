@@ -5,7 +5,7 @@ import { mat4, quat, vec3 } from "gl-matrix";
  * Class representing a 3D mesh, which consists of vertex and index buffers.
  * It provides methods to set the vertex and index buffers, retrieve their information, and destroy the mesh.
  */
-export default class Mesh {
+export default class GFXMesh {
     private name: string;
     private vertexBuffer: GFXArrayBuffer | null = null;
     private indexBuffer: GFXArrayBuffer | null = null;
@@ -18,7 +18,7 @@ export default class Mesh {
 
 
     /**
-     * Creates an instance of Mesh with the specified name.
+     * Creates an instance of GFXMesh with the specified name.
      * @param name - The name of the mesh, used for identification purposes.
      */
     constructor(name: string) {
@@ -33,7 +33,7 @@ export default class Mesh {
     }
 
     /**
-     * Sets the vertex buffer for the mesh.
+     * Sets the vertex buffer for the GFXMesh.
      * @param vertexBuffer - The GFXArrayBuffer containing the vertex data.
      */
     setVertexBuffer(vertexBuffer: GFXArrayBuffer): void {
@@ -41,7 +41,7 @@ export default class Mesh {
     }
 
     /**
-     * Sets the index buffer for the mesh.
+     * Sets the index buffer for the GFXMesh.
      * @param indexBuffer - The GFXArrayBuffer containing the index data.
      * @param indexCount - The number of indices in the buffer.
      */
@@ -74,38 +74,74 @@ export default class Mesh {
         return this.indexBuffer;
     }
     
+    /**
+     * Gets the material index associated with this mesh.
+     * @returns The index of the material used by this mesh.
+     */
     getMaterialIndex(): number {
         return this.materialIndex;
     }
 
+    /**
+     * Sets the material index for this mesh.
+     * @param index - The index of the material to be associated with this mesh.
+     */
     setMaterialIndex(index: number): void {
         this.materialIndex = index;
     }
 
+    /**
+     * Sets the position of the mesh in 3D space.
+     * @param position - A vec3 representing the new position of the mesh.
+     */
     setPosition(position: vec3): void {
         this.position = position;
     }
 
+    /**
+     * Sets the rotation of the mesh in 3D space.
+     * @param rotation - A quat representing the new rotation of the mesh.
+     */
     setRotation(rotation: quat): void {
         this.rotation = rotation;
     }
 
+    /**
+     * Sets the scale of the mesh in 3D space.
+     * @param scale - A vec3 representing the new scale of the mesh.
+     */
     setScale(scale: vec3): void {
         this.scale = scale;
     }
 
+    /**
+     * Gets the position of the mesh in 3D space.
+     * @returns A vec3 representing the position of the mesh.
+     */
     getPosition(): vec3 {
         return this.position;
     }
 
+    /**
+     * Gets the rotation of the mesh in 3D space.
+     * @returns A quat representing the rotation of the mesh.
+     */
     getRotation(): quat {
         return this.rotation;
     }
 
+    /**
+     * Gets the scale of the mesh in 3D space.
+     * @returns A vec3 representing the scale of the mesh.
+     */
     getScale(): vec3 {
         return this.scale;
     }
 
+    /**
+     * Computes and returns the model matrix for the mesh based on its position, rotation, and scale.
+     * @returns A mat4 representing the model matrix of the mesh.
+     */
     getMeshMatrix(): mat4 {
         const modelMatrix = mat4.create();
         mat4.fromRotationTranslationScale(modelMatrix, this.rotation, this.position, this.scale);

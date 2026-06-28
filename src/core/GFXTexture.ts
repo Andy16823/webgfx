@@ -3,7 +3,7 @@ import { WebGFX } from "@/core/WebGFX";
 /**
  * Class representing a GPU texture in the WebGFX framework.
  */
-export default class Texture {
+export default class GFXTexture {
     private texture: GPUTexture;
     private textureView: GPUTextureView;
     private sampler: GPUSampler;
@@ -19,7 +19,7 @@ export default class Texture {
         this.sampler = sampler;
     }
     
-    static fromImage(gfx: WebGFX, image: ImageBitmap | HTMLImageElement): Texture {
+    static fromImage(gfx: WebGFX, image: ImageBitmap | HTMLImageElement): GFXTexture {
         const gpuTexture = gfx.device.createTexture({
             size: [image.width, image.height],
             format: 'rgba8unorm',
@@ -38,10 +38,10 @@ export default class Texture {
             minFilter: 'linear',
         });
 
-        return new Texture(gpuTexture, textureView, sampler);
+        return new GFXTexture(gpuTexture, textureView, sampler);
     }
 
-    static fromColor(gfx: WebGFX, width: number, height: number, color: [number, number, number, number]): Texture {
+    static fromColor(gfx: WebGFX, width: number, height: number, color: [number, number, number, number]): GFXTexture {
         const gpuTexture = gfx.device.createTexture({
             size: [width, height],
             format: 'rgba8unorm',
@@ -69,7 +69,7 @@ export default class Texture {
             minFilter: 'linear',
         });
 
-        return new Texture(gpuTexture, textureView, sampler);
+        return new GFXTexture(gpuTexture, textureView, sampler);
     }
 
     /**

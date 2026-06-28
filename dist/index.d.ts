@@ -241,7 +241,7 @@ declare class GFXArrayBuffer implements GFXBuffer {
  * Class representing a 3D mesh, which consists of vertex and index buffers.
  * It provides methods to set the vertex and index buffers, retrieve their information, and destroy the mesh.
  */
-declare class Mesh {
+declare class GFXMesh {
     private name;
     private vertexBuffer;
     private indexBuffer;
@@ -251,17 +251,17 @@ declare class Mesh {
     private rotation;
     private scale;
     /**
-     * Creates an instance of Mesh with the specified name.
+     * Creates an instance of GFXMesh with the specified name.
      * @param name - The name of the mesh, used for identification purposes.
      */
     constructor(name: string);
     /**
-     * Sets the vertex buffer for the mesh.
+     * Sets the vertex buffer for the GFXMesh.
      * @param vertexBuffer - The GFXArrayBuffer containing the vertex data.
      */
     setVertexBuffer(vertexBuffer: GFXArrayBuffer): void;
     /**
-     * Sets the index buffer for the mesh.
+     * Sets the index buffer for the GFXMesh.
      * @param indexBuffer - The GFXArrayBuffer containing the index data.
      * @param indexCount - The number of indices in the buffer.
      */
@@ -281,14 +281,50 @@ declare class Mesh {
      * @returns The GFXArrayBuffer containing the index data, or null if not set.
      */
     getIndexBuffer(): GFXArrayBuffer | null;
+    /**
+     * Gets the material index associated with this mesh.
+     * @returns The index of the material used by this mesh.
+     */
     getMaterialIndex(): number;
+    /**
+     * Sets the material index for this mesh.
+     * @param index - The index of the material to be associated with this mesh.
+     */
     setMaterialIndex(index: number): void;
+    /**
+     * Sets the position of the mesh in 3D space.
+     * @param position - A vec3 representing the new position of the mesh.
+     */
     setPosition(position: vec3): void;
+    /**
+     * Sets the rotation of the mesh in 3D space.
+     * @param rotation - A quat representing the new rotation of the mesh.
+     */
     setRotation(rotation: quat): void;
+    /**
+     * Sets the scale of the mesh in 3D space.
+     * @param scale - A vec3 representing the new scale of the mesh.
+     */
     setScale(scale: vec3): void;
+    /**
+     * Gets the position of the mesh in 3D space.
+     * @returns A vec3 representing the position of the mesh.
+     */
     getPosition(): vec3;
+    /**
+     * Gets the rotation of the mesh in 3D space.
+     * @returns A quat representing the rotation of the mesh.
+     */
     getRotation(): quat;
+    /**
+     * Gets the scale of the mesh in 3D space.
+     * @returns A vec3 representing the scale of the mesh.
+     */
     getScale(): vec3;
+    /**
+     * Computes and returns the model matrix for the mesh based on its position, rotation, and scale.
+     * @returns A mat4 representing the model matrix of the mesh.
+     */
     getMeshMatrix(): mat4;
     /**
      * Destroys the mesh and releases its resources.
@@ -299,7 +335,7 @@ declare class Mesh {
 /**
  * Class representing a GPU texture in the WebGFX framework.
  */
-declare class Texture {
+declare class GFXTexture {
     private texture;
     private textureView;
     private sampler;
@@ -309,8 +345,8 @@ declare class Texture {
      * @param imageBitmap - The HTMLImageElement or ImageBitmap used to populate the texture.
      */
     constructor(texture: GPUTexture, textureView: GPUTextureView, sampler: GPUSampler);
-    static fromImage(gfx: WebGFX, image: ImageBitmap | HTMLImageElement): Texture;
-    static fromColor(gfx: WebGFX, width: number, height: number, color: [number, number, number, number]): Texture;
+    static fromImage(gfx: WebGFX, image: ImageBitmap | HTMLImageElement): GFXTexture;
+    static fromColor(gfx: WebGFX, width: number, height: number, color: [number, number, number, number]): GFXTexture;
     /**
      * Returns the GPUTextureView associated with this texture.
      * @returns The GPUTextureView of the texture.
@@ -336,7 +372,7 @@ declare class Texture {
  * Interface representing a material in the WebGFX framework.
  * A material defines how a mesh is rendered, including its textures and properties.
  */
-interface MaterialInterface {
+interface GFXMaterialInterface {
     createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
     bindMaterial(pass: GPURenderPassEncoder, groupIndex: number): void;
     destroy(): void;
@@ -344,11 +380,11 @@ interface MaterialInterface {
 /**
  * Class representing a material in the WebGFX framework.
  */
-declare class Material implements MaterialInterface {
+declare class GFXMaterial implements GFXMaterialInterface {
     name: string;
-    albedoTexture: Texture | null;
-    normalTexture: Texture | null;
-    metallicRoughnessTexture: Texture | null;
+    albedoTexture: GFXTexture | null;
+    normalTexture: GFXTexture | null;
+    metallicRoughnessTexture: GFXTexture | null;
     private materialBindGroup;
     private groupIndex;
     /**
@@ -372,34 +408,34 @@ declare class Material implements MaterialInterface {
     bindMaterial(pass: GPURenderPassEncoder): void;
     /**
      * Sets the albedo texture for the material.
-     * @param texture - The Texture object representing the albedo texture.
+     * @param texture - The GFXTexture object representing the albedo texture.
      */
-    setAlbedoTexture(texture: Texture): void;
+    setAlbedoTexture(texture: GFXTexture): void;
     /**
      * Sets the normal texture for the material.
-     * @param texture - The Texture object representing the normal texture.
+     * @param texture - The GFXTexture object representing the normal texture.
      */
-    setNormalTexture(texture: Texture): void;
+    setNormalTexture(texture: GFXTexture): void;
     /**
      * Sets the metallic-roughness texture for the material.
-     * @param texture - The Texture object representing the metallic-roughness texture.
+     * @param texture - The GFXTexture object representing the metallic-roughness texture.
      */
-    setMetallicRoughnessTexture(texture: Texture): void;
+    setMetallicRoughnessTexture(texture: GFXTexture): void;
     /**
      * Returns the albedo texture associated with this material.
-     * @returns The Texture object representing the albedo texture, or null if not set.
+     * @returns The GFXTexture object representing the albedo texture, or null if not set.
      */
-    getAlbedoTexture(): Texture | null;
+    getAlbedoTexture(): GFXTexture | null;
     /**
      * Returns the normal texture associated with this material.
-     * @returns The Texture object representing the normal texture, or null if not set.
+     * @returns The GFXTexture object representing the normal texture, or null if not set.
      */
-    getNormalTexture(): Texture | null;
+    getNormalTexture(): GFXTexture | null;
     /**
      * Returns the metallic-roughness texture associated with this material.
-     * @returns The Texture object representing the metallic-roughness texture, or null if not set.
+     * @returns The GFXTexture object representing the metallic-roughness texture, or null if not set.
      */
-    getMetallicRoughnessTexture(): Texture | null;
+    getMetallicRoughnessTexture(): GFXTexture | null;
     /**
      * Destroys the material and releases its associated resources.
      */
@@ -410,15 +446,22 @@ declare class Material implements MaterialInterface {
  * Class representing a 3D model, which consists of multiple meshes.
  * It provides methods to manage the meshes and destroy the model when it is no longer needed.
  */
-declare class Model {
-    meshes: Mesh[];
-    materials: Material[];
+declare class GFXModel {
+    meshes: GFXMesh[];
+    materials: GFXMaterial[];
     /**
-     * Creates an instance of Model with the specified array of meshes and materials.
-     * @param meshes - An array of Mesh objects that make up the model.
-     * @param materials - An array of Material objects that are used by the model's meshes.
+     * Creates an instance of GFXModel with the specified array of meshes and materials.
+     * @param meshes - An array of GFXMesh objects that make up the model.
+     * @param materials - An array of GFXMaterial objects that are used by the model's meshes.
      */
-    constructor(meshes: Mesh[], materials: Material[]);
+    constructor(meshes: GFXMesh[], materials: GFXMaterial[]);
+    /**
+     * Creates bind groups for all materials in the model and associates them with the specified pipeline and group index.
+     * This method iterates through each material in the model and calls its createBindGroups method.
+     * @param gfx - The WebGFX instance used to create the bind groups.
+     * @param pipeline - The GPURenderPipeline to which the bind groups will be associated.
+     * @param groupIndex - The index of the bind group layout in the pipeline.
+     */
     createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
     /**
      * Destroys the model and releases its resources by destroying all associated meshes and materials.
@@ -447,7 +490,7 @@ declare class GLTFLoader {
      * @param gfx - The WebGFX instance used for creating GPU buffers.
      * @returns A Promise that resolves to a Model object containing the parsed meshes.
      */
-    load(url: string, gfx: WebGFX): Promise<Model>;
+    load(url: string, gfx: WebGFX): Promise<GFXModel>;
     /**
      * Reads the buffer data from the GLTF file and returns an array of GLTFBuffer objects containing the loaded data.
      * @param gltf - The parsed GLTF JSON object.
@@ -465,7 +508,7 @@ declare class GLTFLoader {
      * remark: Every texture slots must be filled with a texture, if the gltf file does not have a texture for a slot,
      * a default texture will be created and used for that slot.
      */
-    readMaterials(gltf: any, basePath: string, gfx: WebGFX): Promise<Material[]>;
+    readMaterials(gltf: any, basePath: string, gfx: WebGFX): Promise<GFXMaterial[]>;
     /**
      * Parses the nodes in the GLTF file and creates Mesh objects for each node, using the provided buffer data.
      * @param gltf - The parsed GLTF JSON object.
@@ -473,7 +516,7 @@ declare class GLTFLoader {
      * @param gfx - The WebGFX instance used for creating GPU buffers.
      * @returns An array of Mesh objects created from the parsed nodes in the GLTF file.
      */
-    parseNodes(gltf: any, buffers: GLTFBuffer[], gfx: WebGFX): Mesh[];
+    parseNodes(gltf: any, buffers: GLTFBuffer[], gfx: WebGFX): GFXMesh[];
 }
 
 /**
@@ -568,4 +611,4 @@ declare function getDefaultMetallicRoughnessColor(): [number, number, number, nu
 declare function defaultShader(): string;
 declare function meshShader(): string;
 
-export { GFXArrayBuffer, type GFXBuffer, GLTFLoader, Material, Mesh, Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler };
+export { GFXArrayBuffer, type GFXBuffer, GLTFLoader, GFXMaterial as Material, GFXMesh as Mesh, GFXModel as Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, GFXTexture as Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler };

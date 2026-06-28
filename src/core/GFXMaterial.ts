@@ -1,11 +1,11 @@
-import Texture from "@/core/Texture";
+import GFXTexture from "@/core/GFXTexture";
 import { WebGFX } from "./WebGFX";
 
 /**
  * Interface representing a material in the WebGFX framework.
  * A material defines how a mesh is rendered, including its textures and properties.
  */
-export interface MaterialInterface {
+export interface GFXMaterialInterface {
     createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
     bindMaterial(pass: GPURenderPassEncoder, groupIndex: number): void;
     destroy(): void;
@@ -14,11 +14,11 @@ export interface MaterialInterface {
 /**
  * Class representing a material in the WebGFX framework.
  */
-export default class Material implements MaterialInterface {
+export default class GFXMaterial implements GFXMaterialInterface {
     name: string;
-    albedoTexture: Texture | null;
-    normalTexture: Texture | null;
-    metallicRoughnessTexture: Texture | null;
+    albedoTexture: GFXTexture | null;
+    normalTexture: GFXTexture | null;
+    metallicRoughnessTexture: GFXTexture | null;
 
     private materialBindGroup: GPUBindGroup | null = null;
     private groupIndex: number | null = null;
@@ -90,49 +90,49 @@ export default class Material implements MaterialInterface {
 
     /**
      * Sets the albedo texture for the material.
-     * @param texture - The Texture object representing the albedo texture.
+     * @param texture - The GFXTexture object representing the albedo texture.
      */
-    setAlbedoTexture(texture: Texture): void {
+    setAlbedoTexture(texture: GFXTexture): void {
         this.albedoTexture = texture;
     }
 
     /**
      * Sets the normal texture for the material.
-     * @param texture - The Texture object representing the normal texture.
+     * @param texture - The GFXTexture object representing the normal texture.
      */
-    setNormalTexture(texture: Texture): void {
+    setNormalTexture(texture: GFXTexture): void {
         this.normalTexture = texture;
     }
 
     /**
      * Sets the metallic-roughness texture for the material.
-     * @param texture - The Texture object representing the metallic-roughness texture.
+     * @param texture - The GFXTexture object representing the metallic-roughness texture.
      */
-    setMetallicRoughnessTexture(texture: Texture): void {
+    setMetallicRoughnessTexture(texture: GFXTexture): void {
         this.metallicRoughnessTexture = texture;
     }
 
     /**
      * Returns the albedo texture associated with this material.
-     * @returns The Texture object representing the albedo texture, or null if not set.
+     * @returns The GFXTexture object representing the albedo texture, or null if not set.
      */
-    getAlbedoTexture(): Texture | null {
+    getAlbedoTexture(): GFXTexture | null {
         return this.albedoTexture;
     }
 
     /**
      * Returns the normal texture associated with this material.
-     * @returns The Texture object representing the normal texture, or null if not set.
+     * @returns The GFXTexture object representing the normal texture, or null if not set.
      */
-    getNormalTexture(): Texture | null {
+    getNormalTexture(): GFXTexture | null {
         return this.normalTexture;
     }
 
     /**
      * Returns the metallic-roughness texture associated with this material.
-     * @returns The Texture object representing the metallic-roughness texture, or null if not set.
+     * @returns The GFXTexture object representing the metallic-roughness texture, or null if not set.
      */
-    getMetallicRoughnessTexture(): Texture | null {
+    getMetallicRoughnessTexture(): GFXTexture | null {
         return this.metallicRoughnessTexture;
     }
 

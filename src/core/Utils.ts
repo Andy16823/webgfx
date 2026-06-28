@@ -1,6 +1,6 @@
 import {vec3, quat, mat4} from 'gl-matrix';
 import { WebGFX } from './WebGFX';
-import Texture from './Texture';
+import Texture from './GFXTexture';
 
 /**
  * Converts degrees to radians.

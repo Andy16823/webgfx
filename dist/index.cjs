@@ -22,13 +22,13 @@ var index_exports = {};
 __export(index_exports, {
   GFXArrayBuffer: () => GFXArrayBuffer,
   GLTFLoader: () => GLTFLoader,
-  Material: () => Material,
-  Mesh: () => Mesh,
-  Model: () => Model,
+  Material: () => GFXMaterial,
+  Mesh: () => GFXMesh,
+  Model: () => GFXModel,
   OrthographicCamera: () => OrthographicCamera,
   PerspectiveCamera: () => PerspectiveCamera,
   PipelineBuilder: () => PipelineBuilder,
-  Texture: () => Texture,
+  Texture: () => GFXTexture,
   Transform: () => Transform,
   Viewport: () => Viewport,
   ViewportMode: () => ViewportMode,
@@ -417,11 +417,11 @@ var Transform = class {
   }
 };
 
-// src/core/Mesh.ts
+// src/core/GFXMesh.ts
 var import_gl_matrix3 = require("gl-matrix");
-var Mesh = class {
+var GFXMesh = class {
   /**
-   * Creates an instance of Mesh with the specified name.
+   * Creates an instance of GFXMesh with the specified name.
    * @param name - The name of the mesh, used for identification purposes.
    */
   constructor(name) {
@@ -439,14 +439,14 @@ var Mesh = class {
     this.scale = import_gl_matrix3.vec3.fromValues(1, 1, 1);
   }
   /**
-   * Sets the vertex buffer for the mesh.
+   * Sets the vertex buffer for the GFXMesh.
    * @param vertexBuffer - The GFXArrayBuffer containing the vertex data.
    */
   setVertexBuffer(vertexBuffer) {
     this.vertexBuffer = vertexBuffer;
   }
   /**
-   * Sets the index buffer for the mesh.
+   * Sets the index buffer for the GFXMesh.
    * @param indexBuffer - The GFXArrayBuffer containing the index data.
    * @param indexCount - The number of indices in the buffer.
    */
@@ -475,30 +475,66 @@ var Mesh = class {
   getIndexBuffer() {
     return this.indexBuffer;
   }
+  /**
+   * Gets the material index associated with this mesh.
+   * @returns The index of the material used by this mesh.
+   */
   getMaterialIndex() {
     return this.materialIndex;
   }
+  /**
+   * Sets the material index for this mesh.
+   * @param index - The index of the material to be associated with this mesh.
+   */
   setMaterialIndex(index) {
     this.materialIndex = index;
   }
+  /**
+   * Sets the position of the mesh in 3D space.
+   * @param position - A vec3 representing the new position of the mesh.
+   */
   setPosition(position) {
     this.position = position;
   }
+  /**
+   * Sets the rotation of the mesh in 3D space.
+   * @param rotation - A quat representing the new rotation of the mesh.
+   */
   setRotation(rotation) {
     this.rotation = rotation;
   }
+  /**
+   * Sets the scale of the mesh in 3D space.
+   * @param scale - A vec3 representing the new scale of the mesh.
+   */
   setScale(scale) {
     this.scale = scale;
   }
+  /**
+   * Gets the position of the mesh in 3D space.
+   * @returns A vec3 representing the position of the mesh.
+   */
   getPosition() {
     return this.position;
   }
+  /**
+   * Gets the rotation of the mesh in 3D space.
+   * @returns A quat representing the rotation of the mesh.
+   */
   getRotation() {
     return this.rotation;
   }
+  /**
+   * Gets the scale of the mesh in 3D space.
+   * @returns A vec3 representing the scale of the mesh.
+   */
   getScale() {
     return this.scale;
   }
+  /**
+   * Computes and returns the model matrix for the mesh based on its position, rotation, and scale.
+   * @returns A mat4 representing the model matrix of the mesh.
+   */
   getMeshMatrix() {
     const modelMatrix = import_gl_matrix3.mat4.create();
     import_gl_matrix3.mat4.fromRotationTranslationScale(modelMatrix, this.rotation, this.position, this.scale);
@@ -519,17 +555,24 @@ var Mesh = class {
   }
 };
 
-// src/core/Model.ts
-var Model = class {
+// src/core/GFXModel.ts
+var GFXModel = class {
   /**
-   * Creates an instance of Model with the specified array of meshes and materials.
-   * @param meshes - An array of Mesh objects that make up the model.
-   * @param materials - An array of Material objects that are used by the model's meshes.
+   * Creates an instance of GFXModel with the specified array of meshes and materials.
+   * @param meshes - An array of GFXMesh objects that make up the model.
+   * @param materials - An array of GFXMaterial objects that are used by the model's meshes.
    */
   constructor(meshes, materials) {
     this.meshes = meshes;
     this.materials = materials;
   }
+  /**
+   * Creates bind groups for all materials in the model and associates them with the specified pipeline and group index.
+   * This method iterates through each material in the model and calls its createBindGroups method.
+   * @param gfx - The WebGFX instance used to create the bind groups.
+   * @param pipeline - The GPURenderPipeline to which the bind groups will be associated.
+   * @param groupIndex - The index of the bind group layout in the pipeline.
+   */
   createBindGroups(gfx, pipeline, groupIndex) {
     this.materials.forEach((material) => {
       material.createBindGroups(gfx, pipeline, groupIndex);
@@ -549,8 +592,8 @@ var Model = class {
   }
 };
 
-// src/core/Material.ts
-var Material = class {
+// src/core/GFXMaterial.ts
+var GFXMaterial = class {
   /**
    * Creates an instance of Material with the specified name.
    * @param name - The name of the material.
@@ -617,42 +660,42 @@ var Material = class {
   }
   /**
    * Sets the albedo texture for the material.
-   * @param texture - The Texture object representing the albedo texture.
+   * @param texture - The GFXTexture object representing the albedo texture.
    */
   setAlbedoTexture(texture) {
     this.albedoTexture = texture;
   }
   /**
    * Sets the normal texture for the material.
-   * @param texture - The Texture object representing the normal texture.
+   * @param texture - The GFXTexture object representing the normal texture.
    */
   setNormalTexture(texture) {
     this.normalTexture = texture;
   }
   /**
    * Sets the metallic-roughness texture for the material.
-   * @param texture - The Texture object representing the metallic-roughness texture.
+   * @param texture - The GFXTexture object representing the metallic-roughness texture.
    */
   setMetallicRoughnessTexture(texture) {
     this.metallicRoughnessTexture = texture;
   }
   /**
    * Returns the albedo texture associated with this material.
-   * @returns The Texture object representing the albedo texture, or null if not set.
+   * @returns The GFXTexture object representing the albedo texture, or null if not set.
    */
   getAlbedoTexture() {
     return this.albedoTexture;
   }
   /**
    * Returns the normal texture associated with this material.
-   * @returns The Texture object representing the normal texture, or null if not set.
+   * @returns The GFXTexture object representing the normal texture, or null if not set.
    */
   getNormalTexture() {
     return this.normalTexture;
   }
   /**
    * Returns the metallic-roughness texture associated with this material.
-   * @returns The Texture object representing the metallic-roughness texture, or null if not set.
+   * @returns The GFXTexture object representing the metallic-roughness texture, or null if not set.
    */
   getMetallicRoughnessTexture() {
     return this.metallicRoughnessTexture;
@@ -676,8 +719,8 @@ var Material = class {
   }
 };
 
-// src/core/Texture.ts
-var Texture = class _Texture {
+// src/core/GFXTexture.ts
+var GFXTexture = class _GFXTexture {
   /**
    * Creates an instance of Texture.
    * @param gfx - The WebGFX instance used to create the GPU texture.
@@ -704,7 +747,7 @@ var Texture = class _Texture {
       magFilter: "linear",
       minFilter: "linear"
     });
-    return new _Texture(gpuTexture, textureView, sampler);
+    return new _GFXTexture(gpuTexture, textureView, sampler);
   }
   static fromColor(gfx, width, height, color) {
     const gpuTexture = gfx.device.createTexture({
@@ -730,7 +773,7 @@ var Texture = class _Texture {
       magFilter: "linear",
       minFilter: "linear"
     });
-    return new _Texture(gpuTexture, textureView, sampler);
+    return new _GFXTexture(gpuTexture, textureView, sampler);
   }
   /**
    * Returns the GPUTextureView associated with this texture.
@@ -822,7 +865,7 @@ var GLTFLoader = class {
     const buffers = await this.readBuffers(gltf, basePath);
     const meshes = this.parseNodes(gltf, buffers, gfx);
     console.log("Parsed meshes:", meshes);
-    return new Model(meshes, materials);
+    return new GFXModel(meshes, materials);
   }
   /**
    * Reads the buffer data from the GLTF file and returns an array of GLTFBuffer objects containing the loaded data.
@@ -859,16 +902,16 @@ var GLTFLoader = class {
     var _a, _b, _c, _d, _e;
     const materials = [];
     for (const material of gltf.materials) {
-      let gfxMaterial = new Material(material.name || "Unnamed Material");
+      let gfxMaterial = new GFXMaterial(material.name || "Unnamed Material");
       const baseColorTextureSrc = ((_b = (_a = material.pbrMetallicRoughness) == null ? void 0 : _a.baseColorTexture) == null ? void 0 : _b.index) !== void 0 ? `${basePath}/${gltf.images[material.pbrMetallicRoughness.baseColorTexture.index].uri}` : void 0;
       if (baseColorTextureSrc) {
         const baseColorImage = new Image();
         baseColorImage.src = baseColorTextureSrc;
         await baseColorImage.decode();
-        const baseColorTexture = Texture.fromImage(gfx, baseColorImage);
+        const baseColorTexture = GFXTexture.fromImage(gfx, baseColorImage);
         gfxMaterial.setAlbedoTexture(baseColorTexture);
       } else {
-        const defaultTexture = Texture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
+        const defaultTexture = GFXTexture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
         gfxMaterial.setAlbedoTexture(defaultTexture);
       }
       const normalMapTexture = ((_c = material.normalTexture) == null ? void 0 : _c.index) !== void 0 ? `${basePath}/${gltf.images[material.normalTexture.index].uri}` : void 0;
@@ -876,10 +919,10 @@ var GLTFLoader = class {
         const normalMapImage = new Image();
         normalMapImage.src = normalMapTexture;
         await normalMapImage.decode();
-        const normalMapTextureObj = Texture.fromImage(gfx, normalMapImage);
+        const normalMapTextureObj = GFXTexture.fromImage(gfx, normalMapImage);
         gfxMaterial.setNormalTexture(normalMapTextureObj);
       } else {
-        const defaultNormalTexture = Texture.fromColor(gfx, 1, 1, [128, 128, 255, 255]);
+        const defaultNormalTexture = GFXTexture.fromColor(gfx, 1, 1, [128, 128, 255, 255]);
         gfxMaterial.setNormalTexture(defaultNormalTexture);
       }
       const metallicRoughnessTexture = ((_e = (_d = material.pbrMetallicRoughness) == null ? void 0 : _d.metallicRoughnessTexture) == null ? void 0 : _e.index) !== void 0 ? `${basePath}/${gltf.images[material.pbrMetallicRoughness.metallicRoughnessTexture.index].uri}` : void 0;
@@ -887,10 +930,10 @@ var GLTFLoader = class {
         const metallicRoughnessImage = new Image();
         metallicRoughnessImage.src = metallicRoughnessTexture;
         await metallicRoughnessImage.decode();
-        const metallicRoughnessTextureObj = Texture.fromImage(gfx, metallicRoughnessImage);
+        const metallicRoughnessTextureObj = GFXTexture.fromImage(gfx, metallicRoughnessImage);
         gfxMaterial.setMetallicRoughnessTexture(metallicRoughnessTextureObj);
       } else {
-        const defaultMetallicRoughnessTexture = Texture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
+        const defaultMetallicRoughnessTexture = GFXTexture.fromColor(gfx, 1, 1, [255, 255, 255, 255]);
         gfxMaterial.setMetallicRoughnessTexture(defaultMetallicRoughnessTexture);
       }
       materials.push(gfxMaterial);
@@ -916,7 +959,7 @@ var GLTFLoader = class {
       const mesh = gltf.meshes[meshIndex];
       (_a = mesh == null ? void 0 : mesh.primitives) == null ? void 0 : _a.forEach((primitive) => {
         var _a2, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
-        let gfxMesh = new Mesh(name);
+        let gfxMesh = new GFXMesh(name);
         gfxMesh.setPosition(import_gl_matrix4.vec3.fromValues(...position));
         gfxMesh.setRotation(import_gl_matrix4.quat.fromValues(...rotation));
         gfxMesh.setScale(import_gl_matrix4.vec3.fromValues(...scale));
