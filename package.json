@@ -1,18 +1,37 @@
 {
-  "name": "webgfx",
+  "name": "@andy16823/webgfx",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:lib": "tsup src/index.ts --format esm,cjs --dts --clean --tsconfig tsconfig.lib.json",
+    "prepublishOnly": "npm run build:lib"
   },
   "dependencies": {
-    "gl-matrix": "^3.4.4",
-    "next": "16.2.9",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "gl-matrix": "^3.4.4"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -21,6 +40,10 @@
     "@webgpu/types": "^0.1.71",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tsup": "^8.5.1",
     "typescript": "^5"
   }
 }

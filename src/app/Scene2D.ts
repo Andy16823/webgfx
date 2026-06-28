@@ -3,7 +3,7 @@ import { WebGFX } from '@/core/WebGFX';
 import { OrthographicCamera } from '@/core/Camera';
 import Transform from '@/core/Transform';
 import PipelineBuilder from '@/core/PipelineBuilder';
-import { defaultShader } from './shader/Shaders';
+import { defaultShader } from '../shaders/Shaders';
 import Texture from '@/core/Texture';
 import GFXArrayBuffer from '@/core/GFXArrayBuffer';
 import GLTFLoader from '@/core/GLTFLoader';

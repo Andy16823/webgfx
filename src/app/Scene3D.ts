@@ -3,7 +3,7 @@ import { WebGFX } from '@/core/WebGFX';
 import { PerspectiveCamera } from '@/core/Camera';
 import Transform from '@/core/Transform';
 import PipelineBuilder from '@/core/PipelineBuilder';
-import { meshShader } from './shader/Shaders';
+import { meshShader } from '../shaders/Shaders';
 import GFXArrayBuffer from '@/core/GFXArrayBuffer';
 import GLTFLoader from '@/core/GLTFLoader';
 import Model from '@/core/Model';
