@@ -3,12 +3,14 @@ export class WebGFX {
     context: GPUCanvasContext;
     format: GPUTextureFormat;
     depthTexture: GPUTexture;
+    depthTextureView: GPUTextureView;
 
     constructor(device: GPUDevice, context: GPUCanvasContext, format: GPUTextureFormat, depthTexture: GPUTexture) {
         this.device = device;
         this.context = context;
         this.format = format;
         this.depthTexture = depthTexture;
+        this.depthTextureView = depthTexture.createView();
     }
 
     /**
@@ -73,7 +75,7 @@ export class WebGFX {
                 storeOp: 'store',
             }],
             depthStencilAttachment: {
-                view: this.depthTexture.createView(),
+                view: this.depthTextureView,
                 depthClearValue: 1.0,
                 depthLoadOp: 'clear',
                 depthStoreOp: 'store',
@@ -100,33 +102,5 @@ export class WebGFX {
      */
     createShaderModule(code: string): GPUShaderModule {
         return this.device.createShaderModule({ code });
-    }
-
-    createPipeline(shaderModule: GPUShaderModule) : GPURenderPipeline {
-        return this.device.createRenderPipeline({
-            layout: 'auto',
-            vertex: {
-                module: shaderModule,
-                entryPoint: 'vs_main',
-                buffers: [{
-                    arrayStride: 2 * 4, // 2 floats per vertex, 4 bytes per float
-                    attributes: [{
-                        shaderLocation: 0,
-                        offset: 0,
-                        format: 'float32x2',
-                    }],
-                }],
-            },
-            fragment: {
-                module: shaderModule,
-                entryPoint: 'fs_main',
-                targets: [{
-                    format: this.format,
-                }],
-            },
-            primitive: {
-                topology: 'triangle-list',
-            },
-        });
     }
 }

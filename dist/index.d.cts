@@ -6,6 +6,7 @@ declare class WebGFX {
     context: GPUCanvasContext;
     format: GPUTextureFormat;
     depthTexture: GPUTexture;
+    depthTextureView: GPUTextureView;
     constructor(device: GPUDevice, context: GPUCanvasContext, format: GPUTextureFormat, depthTexture: GPUTexture);
     /**
      * Creates a new instance of WebGFX by initializing the GPU device and context for the provided canvas.
@@ -33,7 +34,6 @@ declare class WebGFX {
      * @returns A GPUShaderModule that can be used to create a render pipeline.
      */
     createShaderModule(code: string): GPUShaderModule;
-    createPipeline(shaderModule: GPUShaderModule): GPURenderPipeline;
 }
 
 /**

@@ -5,6 +5,7 @@ var WebGFX = class _WebGFX {
     this.context = context;
     this.format = format;
     this.depthTexture = depthTexture;
+    this.depthTextureView = depthTexture.createView();
   }
   /**
    * Creates a new instance of WebGFX by initializing the GPU device and context for the provided canvas.
@@ -52,7 +53,7 @@ var WebGFX = class _WebGFX {
         storeOp: "store"
       }],
       depthStencilAttachment: {
-        view: this.depthTexture.createView(),
+        view: this.depthTextureView,
         depthClearValue: 1,
         depthLoadOp: "clear",
         depthStoreOp: "store"
@@ -76,34 +77,6 @@ var WebGFX = class _WebGFX {
    */
   createShaderModule(code) {
     return this.device.createShaderModule({ code });
-  }
-  createPipeline(shaderModule) {
-    return this.device.createRenderPipeline({
-      layout: "auto",
-      vertex: {
-        module: shaderModule,
-        entryPoint: "vs_main",
-        buffers: [{
-          arrayStride: 2 * 4,
-          // 2 floats per vertex, 4 bytes per float
-          attributes: [{
-            shaderLocation: 0,
-            offset: 0,
-            format: "float32x2"
-          }]
-        }]
-      },
-      fragment: {
-        module: shaderModule,
-        entryPoint: "fs_main",
-        targets: [{
-          format: this.format
-        }]
-      },
-      primitive: {
-        topology: "triangle-list"
-      }
-    });
   }
 };
 
