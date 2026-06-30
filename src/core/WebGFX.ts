@@ -103,4 +103,19 @@ export class WebGFX {
     createShaderModule(code: string): GPUShaderModule {
         return this.device.createShaderModule({ code });
     }
+
+    /**
+     * Resizes the depth texture to match the new width and height of the canvas.
+     * @param width The new width of the canvas.
+     * @param height The new height of the canvas.
+     */
+    resize(width: number, height: number) {
+        this.depthTexture.destroy();
+        this.depthTexture = this.device.createTexture({
+            size: [width, height],
+            format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+        this.depthTextureView = this.depthTexture.createView();
+    }
 }

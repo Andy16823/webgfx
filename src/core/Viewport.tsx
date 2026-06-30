@@ -121,7 +121,7 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
             if (disposed) return;
 
             gfxRef.current = gfx;
-            await scene.initialize(gfx);
+            await scene.initialize(gfx, width, height);
 
             if (mode === ViewportMode.OnDemand) {
                 renderFrame();
@@ -168,6 +168,18 @@ export default function Viewport({ scene, invalidateSignal, width = 800, height 
             renderFrame();
         }
     }, [invalidateSignal, mode]);
+
+    /**
+     * Handles window resize events and updates the scene's size accordingly.
+     * This effect listens for changes in the width and height props and calls the scene's resize method with the updated dimensions.
+     */
+    useEffect(() => {
+        const gfx = gfxRef.current;
+        if (!gfx) return; // Ensure gfx is initialized before proceeding
+
+        gfx.resize(width, height);
+        scene.resize(gfx, width, height);
+    }, [width, height]);
 
     return <canvas ref={canvasRef} width={width} height={height} />;
 }

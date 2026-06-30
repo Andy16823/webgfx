@@ -6,8 +6,9 @@ import { WebGFX } from '@/core/WebGFX';
  * Implementing classes should provide concrete implementations for these methods to manage the scene's lifecycle.
  */
 export interface Scene {
-    initialize(gfx: WebGFX): Promise<void>;
+    initialize(gfx: WebGFX, width: number, height: number): Promise<void>;
     update(gfx: WebGFX, deltaTime: number): void;
     render(gfx: WebGFX): void;
     dispose(gfx: WebGFX): void;
+    resize(gfx: WebGFX, width: number, height: number): void;
 }

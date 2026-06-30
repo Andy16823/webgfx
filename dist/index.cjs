@@ -127,6 +127,20 @@ var WebGFX = class _WebGFX {
   createShaderModule(code) {
     return this.device.createShaderModule({ code });
   }
+  /**
+   * Resizes the depth texture to match the new width and height of the canvas.
+   * @param width The new width of the canvas.
+   * @param height The new height of the canvas.
+   */
+  resize(width, height) {
+    this.depthTexture.destroy();
+    this.depthTexture = this.device.createTexture({
+      size: [width, height],
+      format: "depth24plus",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT
+    });
+    this.depthTextureView = this.depthTexture.createView();
+  }
 };
 
 // src/core/Camera.ts
@@ -1176,7 +1190,7 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
       const gfx = await WebGFX.create(canvas);
       if (disposed) return;
       gfxRef.current = gfx;
-      await scene.initialize(gfx);
+      await scene.initialize(gfx, width, height);
       if (mode === 1 /* OnDemand */) {
         renderFrame();
         return;
@@ -1211,6 +1225,12 @@ function Viewport({ scene, invalidateSignal, width = 800, height = 600, mode = 1
       renderFrame();
     }
   }, [invalidateSignal, mode]);
+  (0, import_react.useEffect)(() => {
+    const gfx = gfxRef.current;
+    if (!gfx) return;
+    gfx.resize(width, height);
+    scene.resize(gfx, width, height);
+  }, [width, height]);
   return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("canvas", { ref: canvasRef, width, height });
 }
 
