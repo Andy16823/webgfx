@@ -41,6 +41,10 @@ export class PerspectiveCamera implements Camera {
         this.near = near;
         this.far = far;
     }
+    
+    setAspect(aspect: number): void {
+        this.aspect = aspect;
+    }
 
     /**
      * Returns the up vector of the camera in world space, calculated based on the camera's rotation.

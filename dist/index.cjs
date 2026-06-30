@@ -208,6 +208,9 @@ var PerspectiveCamera = class {
     this.near = near;
     this.far = far;
   }
+  setAspect(aspect) {
+    this.aspect = aspect;
+  }
   /**
    * Returns the up vector of the camera in world space, calculated based on the camera's rotation.
    * @returns A vec3 representing the up direction of the camera.
@@ -1260,6 +1263,8 @@ var GFXRenderTarget = class {
       magFilter: "linear",
       minFilter: "linear"
     });
+    this.width = width;
+    this.height = height;
   }
   /**
    * Starts a render pass on the render target, returning the command encoder and render pass encoder.
@@ -1303,6 +1308,30 @@ var GFXRenderTarget = class {
   destroy() {
     this.renderTargetTexture.destroy();
     this.depthTexture.destroy();
+  }
+  /**
+   * Resizes the render target, recreating its textures with the new dimensions.
+   * @param gfx - The WebGFX instance used to create the textures.
+   * @param width - The new width of the render target.
+   * @param height - The new height of the render target.
+   */
+  resize(gfx, width, height) {
+    this.renderTargetTexture.destroy();
+    this.depthTexture.destroy();
+    this.renderTargetTexture = gfx.device.createTexture({
+      size: [width, height],
+      format: gfx.format,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+    });
+    this.renderTargetView = this.renderTargetTexture.createView();
+    this.depthTexture = gfx.device.createTexture({
+      size: [width, height],
+      format: "depth24plus",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT
+    });
+    this.depthTextureView = this.depthTexture.createView();
+    this.width = width;
+    this.height = height;
   }
   /**
    * Creates bind groups for the render target, allowing it to be used as a texture in shaders.

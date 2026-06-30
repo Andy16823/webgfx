@@ -82,6 +82,7 @@ declare class PerspectiveCamera implements Camera {
      * @param fov - The field of view in degrees (default is 45 degrees).
      */
     constructor(position: vec3, aspect: number, near?: number, far?: number, fov?: number);
+    setAspect(aspect: number): void;
     /**
      * Returns the up vector of the camera in world space, calculated based on the camera's rotation.
      * @returns A vec3 representing the up direction of the camera.
@@ -656,6 +657,7 @@ interface GFXRenderTargetInterface {
     };
     endRenderPass(gfx: WebGFX, pass: GPURenderPassEncoder, encoder: GPUCommandEncoder): void;
     createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
+    resize(gfx: WebGFX, width: number, height: number): void;
     bind(pass: GPURenderPassEncoder, group: number): void;
     destroy(): void;
 }
@@ -671,6 +673,8 @@ declare class GFXRenderTarget implements GFXRenderTargetInterface {
     private depthTexture;
     private depthTextureView;
     private bindGroup;
+    private width;
+    private height;
     /**
      * Creates an instance of GFXRenderTarget with the specified width and height.
      * @param gfx - The WebGFX instance used to create the render target.
@@ -701,6 +705,13 @@ declare class GFXRenderTarget implements GFXRenderTargetInterface {
      * This method should be called when the render target is no longer needed to free up GPU memory.
      */
     destroy(): void;
+    /**
+     * Resizes the render target, recreating its textures with the new dimensions.
+     * @param gfx - The WebGFX instance used to create the textures.
+     * @param width - The new width of the render target.
+     * @param height - The new height of the render target.
+     */
+    resize(gfx: WebGFX, width: number, height: number): void;
     /**
      * Creates bind groups for the render target, allowing it to be used as a texture in shaders.
      */

@@ -7,6 +7,7 @@ export interface GFXRenderTargetInterface {
     startRenderPass(gfx: WebGFX): {encoder: GPUCommandEncoder, pass: GPURenderPassEncoder};
     endRenderPass(gfx: WebGFX, pass: GPURenderPassEncoder, encoder: GPUCommandEncoder): void;
     createBindGroups(gfx: WebGFX, pipeline: GPURenderPipeline, groupIndex: number): void;
+    resize(gfx: WebGFX, width: number, height: number): void;
     bind(pass: GPURenderPassEncoder, group: number): void;
     destroy(): void;
 }
@@ -23,6 +24,8 @@ export default class GFXRenderTarget implements GFXRenderTargetInterface {
     private depthTexture: GPUTexture;
     private depthTextureView: GPUTextureView;    
     private bindGroup: GPUBindGroup | null = null;
+    private width: number;
+    private height: number;
 
     /**
      * Creates an instance of GFXRenderTarget with the specified width and height.
@@ -31,6 +34,7 @@ export default class GFXRenderTarget implements GFXRenderTargetInterface {
      * @param height - The height of the render target in pixels.
      */
     constructor(gfx: WebGFX, width: number, height: number) {
+        // Create color attachment texture and view
         this.renderTargetTexture = gfx.device.createTexture({
             size: [width, height],
             format: gfx.format,
@@ -38,6 +42,7 @@ export default class GFXRenderTarget implements GFXRenderTargetInterface {
         });
         this.renderTargetView = this.renderTargetTexture.createView();
 
+        // Create depth attachment texture and view
         this.depthTexture = gfx.device.createTexture({
             size: [width, height],
             format: 'depth24plus',
@@ -45,10 +50,15 @@ export default class GFXRenderTarget implements GFXRenderTargetInterface {
         });
         this.depthTextureView = this.depthTexture.createView();
 
+        // Create sampler for the render target texture
         this.renderTargetSampler = gfx.device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',
         });
+
+        // Store width and height
+        this.width = width;
+        this.height = height;
     }
     
     /**
@@ -96,6 +106,38 @@ export default class GFXRenderTarget implements GFXRenderTargetInterface {
     destroy(): void {
         this.renderTargetTexture.destroy();
         this.depthTexture.destroy();
+    }
+
+    /**
+     * Resizes the render target, recreating its textures with the new dimensions.
+     * @param gfx - The WebGFX instance used to create the textures.
+     * @param width - The new width of the render target.
+     * @param height - The new height of the render target.
+     */
+    resize(gfx: WebGFX, width: number, height: number): void {
+        // Destroy existing textures before creating new ones
+        this.renderTargetTexture.destroy();
+        this.depthTexture.destroy();
+        
+        // Create color attachment texture and view
+        this.renderTargetTexture = gfx.device.createTexture({
+            size: [width, height],
+            format: gfx.format,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING
+        });
+        this.renderTargetView = this.renderTargetTexture.createView();
+
+        // Create depth attachment texture and view
+        this.depthTexture = gfx.device.createTexture({
+            size: [width, height],
+            format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT
+        });
+        this.depthTextureView = this.depthTexture.createView();
+
+        // Update width and height
+        this.width = width;
+        this.height = height;
     }
 
     /**
