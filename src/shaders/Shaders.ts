@@ -143,16 +143,8 @@ export function textShader(): string {
 
     @fragment
     fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-        let texColor = textureSample(
-            fontTexture,
-            fontSampler,
-            input.uv
-        );
-
-        // let uv = vec2f(input.uv.x, 1.0 - input.uv.y);
-        let uv = vec2f(input.uv.x, 1.0 - input.uv.y);
-        let alpha = textureSample(fontTexture, fontSampler, uv).r;
-        return vec4f(texColor.rrr, alpha);
+        let alpha = textureSample(fontTexture, fontSampler, input.uv).r;
+        return vec4f(1.0, 1.0, 1.0, alpha);
     }
     `;
 }

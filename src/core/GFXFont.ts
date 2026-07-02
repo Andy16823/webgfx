@@ -217,7 +217,7 @@ export default class GFXFont {
      * @param text - The text string to be rendered.
      * @returns An object containing the vertex and index data as Float32Array and Uint16Array respectively.
      */
-    createBufferDataForText(text: string, posX: number, posY: number): { vertices: Float32Array, indices: Uint16Array, indexCount: number } {
+    createBufferDataForText(text: string, posX: number, posY: number, lineHeight: number): { vertices: Float32Array, indices: Uint16Array, indexCount: number } {
         // Create arrays to hold vertex and index data
         const vertices: number[] = [];
         const indices: number[] = [];
@@ -230,6 +230,12 @@ export default class GFXFont {
         // Iterate through each character in the text string and generate vertex and index data for each glyph
         for (const char of text) {
             const glyph = this.glyphs.get(char);
+
+            if (char === '\n') {
+                cursorX = posX;
+                cursorY -= lineHeight;
+                continue;
+            }
 
             // Skip if glyph is not found
             if (!glyph) {

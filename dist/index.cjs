@@ -1066,7 +1066,8 @@ function PipelineBuilder(pipelineDescriptor, gfx) {
       module: pipelineDescriptor.fragment.module,
       entryPoint: pipelineDescriptor.fragment.entryPoint,
       targets: [{
-        format: gfx.format
+        format: gfx.format,
+        blend: pipelineDescriptor.fragment.blend
       }]
     },
     primitive: pipelineDescriptor.primitive
@@ -1540,7 +1541,7 @@ var GFXFont = class _GFXFont {
    * @param text - The text string to be rendered.
    * @returns An object containing the vertex and index data as Float32Array and Uint16Array respectively.
    */
-  createBufferDataForText(text, posX, posY) {
+  createBufferDataForText(text, posX, posY, lineHeight) {
     const vertices = [];
     const indices = [];
     let cursorX = posX;
@@ -1548,6 +1549,11 @@ var GFXFont = class _GFXFont {
     let indexOffset = 0;
     for (const char of text) {
       const glyph = this.glyphs.get(char);
+      if (char === "\n") {
+        cursorX = posX;
+        cursorY -= lineHeight;
+        continue;
+      }
       if (!glyph) {
         console.warn(`Glyph for character '${char}' not found.`);
         continue;
@@ -1776,16 +1782,8 @@ function textShader() {
 
     @fragment
     fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-        let texColor = textureSample(
-            fontTexture,
-            fontSampler,
-            input.uv
-        );
-
-        // let uv = vec2f(input.uv.x, 1.0 - input.uv.y);
-        let uv = vec2f(input.uv.x, 1.0 - input.uv.y);
-        let alpha = textureSample(fontTexture, fontSampler, uv).r;
-        return vec4f(texColor.rrr, alpha);
+        let alpha = textureSample(fontTexture, fontSampler, input.uv).r;
+        return vec4f(1.0, 1.0, 1.0, alpha);
     }
     `;
 }

@@ -15,6 +15,7 @@ interface VertexBindingPoint {
 interface FragmentBindingPoint {
     module: GPUShaderModule;
     entryPoint: string;
+    blend?: GPUBlendState;
 }
 
 /**
@@ -46,7 +47,8 @@ export default function PipelineBuilder(pipelineDescriptor: PipelineDescriptor, 
             module: pipelineDescriptor.fragment.module,
             entryPoint: pipelineDescriptor.fragment.entryPoint,
             targets: [{
-                format: gfx.format
+                format: gfx.format,
+                blend: pipelineDescriptor.fragment.blend
             }]
         },
         primitive: pipelineDescriptor.primitive

@@ -541,6 +541,7 @@ interface VertexBindingPoint {
 interface FragmentBindingPoint {
     module: GPUShaderModule;
     entryPoint: string;
+    blend?: GPUBlendState;
 }
 /**
  * PipelineDescriptor interface represents the descriptor for creating a render pipeline, including vertex and fragment shader binding points and primitive state.
@@ -766,7 +767,7 @@ declare class GFXFont {
      * @param text - The text string to be rendered.
      * @returns An object containing the vertex and index data as Float32Array and Uint16Array respectively.
      */
-    createBufferDataForText(text: string, posX: number, posY: number): {
+    createBufferDataForText(text: string, posX: number, posY: number, lineHeight: number): {
         vertices: Float32Array;
         indices: Uint16Array;
         indexCount: number;
