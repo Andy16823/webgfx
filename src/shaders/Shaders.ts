@@ -106,6 +106,57 @@ export function fullscreenQuadShader(): string {
     `;
 }
 
+export function textShader(): string {
+    return `
+    struct VertexInput {
+        @location(0) position: vec2f,
+        @location(2) uv: vec2f
+    }
+
+    struct VertexOutput {
+        @builtin(position) position: vec4f,
+        @location(0) uv: vec2f,
+    }
+
+    struct CameraUniforms {
+        viewMatrix: mat4x4f,
+        projectionMatrix: mat4x4f
+    }
+
+    @group(0) @binding(0)
+    var<uniform> cameraUniforms: CameraUniforms;
+
+    @group(1) @binding(0)
+    var fontTexture: texture_2d<f32>;
+
+    @group(1) @binding(1)
+    var fontSampler: sampler;
+
+    @vertex
+    fn vs_main(input: VertexInput) -> VertexOutput {
+        var output: VertexOutput;
+        let worldPos = vec4f(input.position, 0.0, 1.0);
+        output.position = cameraUniforms.projectionMatrix * cameraUniforms.viewMatrix * worldPos;
+        output.uv = input.uv;
+        return output;
+    }
+
+    @fragment
+    fn fs_main(input: VertexOutput) -> @location(0) vec4f {
+        let texColor = textureSample(
+            fontTexture,
+            fontSampler,
+            input.uv
+        );
+
+        // let uv = vec2f(input.uv.x, 1.0 - input.uv.y);
+        let uv = vec2f(input.uv.x, 1.0 - input.uv.y);
+        let alpha = textureSample(fontTexture, fontSampler, uv).r;
+        return vec4f(texColor.rrr, alpha);
+    }
+    `;
+}
+
 export function meshShader(): string {
     return `
     struct VertexInput {

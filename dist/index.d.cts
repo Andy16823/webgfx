@@ -725,6 +725,68 @@ declare class GFXRenderTarget implements GFXRenderTargetInterface {
 }
 
 /**
+ * GFXFont class is responsible for loading a font, generating glyphs, and creating a texture atlas for rendering text in WebGPU.
+ */
+declare class GFXFont {
+    private glyphs;
+    private fontTexture;
+    private textureView;
+    private fontSampler;
+    private bindingGroup;
+    private size;
+    constructor(size: number);
+    /**
+     * Creates a texture for the font glyphs.
+     * @param gfx - The WebGFX instance used to access the GPU device.
+     * @param width - The width of the texture.
+     * @param height - The height of the texture.
+     * @param layerCount - The number of layers in the texture (one for each glyph).
+     */
+    private createTexture;
+    /**
+     * Copies the alpha channel data of a glyph to the font texture.
+     * @param gfx - The WebGFX instance used to access the GPU device.
+     * @param data - The alpha channel data of the glyph.
+     * @param width - The width of the glyph.
+     * @param height - The height of the glyph.
+     * @param layer - The layer index in the texture array.
+     * @param channel - The number of channels per pixel (default is 1 for r8unorm).
+     */
+    private copyDataToTexture;
+    /**
+     * Loads a font from a URL, generates glyphs, and creates a texture atlas for rendering text.
+     * @param gfx - The WebGFX instance used to access the GPU device.
+     * @param fontUrl - The URL of the font file to be loaded.
+     * @param size - The size of the font to be loaded (default is 72).
+     * @returns A Promise that resolves to a GFXFont instance containing the loaded font and its glyphs.
+     */
+    static loadFont(gfx: WebGFX, fontUrl: string, size?: number): Promise<GFXFont>;
+    /**
+     * Creates buffer data for rendering the given text string using the loaded font glyphs.
+     * @param text - The text string to be rendered.
+     * @returns An object containing the vertex and index data as Float32Array and Uint16Array respectively.
+     */
+    createBufferDataForText(text: string, posX: number, posY: number): {
+        vertices: Float32Array;
+        indices: Uint16Array;
+        indexCount: number;
+    };
+    /**
+     * Creates a bind group for the font texture and sampler, allowing them to be used in a shader pipeline.
+     * @param gfx - The WebGFX instance used to access the GPU device.
+     * @param pipeline - The GPURenderPipeline for which the bind group is being created.
+     * @param bindingIndex - The index at which the bind group will be bound in the pipeline.
+     */
+    createBindGroup(gfx: WebGFX, pipeline: GPURenderPipeline, bindingIndex: number): void;
+    /**
+     * Binds the font's bind group to the provided render pass encoder at the specified binding index.
+     * @param passEncoder - The GPURenderPassEncoder to which the bind group will be bound.
+     * @param bindingIndex - The index at which to bind the font's bind group.
+     */
+    bind(passEncoder: GPURenderPassEncoder, bindingIndex: number): void;
+}
+
+/**
  * Converts degrees to radians.
  * @param degrees - The angle in degrees.
  * @returns The angle in radians.
@@ -749,6 +811,7 @@ declare function getDefaultMetallicRoughnessColor(): [number, number, number, nu
 
 declare function defaultShader(): string;
 declare function fullscreenQuadShader(): string;
+declare function textShader(): string;
 declare function meshShader(): string;
 
-export { GFXArrayBuffer, type GFXBuffer, GFXRenderTarget, type GFXRenderTargetInterface, GLTFLoader, GFXMaterial as Material, GFXMesh as Mesh, MeshBuilder, GFXModel as Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, GFXTexture as Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, fullscreenQuadShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler };
+export { GFXArrayBuffer, type GFXBuffer, GFXFont, GFXRenderTarget, type GFXRenderTargetInterface, GLTFLoader, GFXMaterial as Material, GFXMesh as Mesh, MeshBuilder, GFXModel as Model, OrthographicCamera, PerspectiveCamera, PipelineBuilder, type Scene, GFXTexture as Texture, Transform, Viewport, ViewportMode, WebGFX, defaultShader, fullscreenQuadShader, getDefaultAlbedoColor, getDefaultMetallicRoughnessColor, getDefaultNormalColor, getParentPath, getRadians, meshShader, quatToEuler, textShader };

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "types": ["@webgpu/types"],
+    "types": ["@webgpu/types", "opentype.js"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,

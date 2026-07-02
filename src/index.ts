@@ -13,6 +13,7 @@ export { default as PipelineBuilder } from "./core/PipelineBuilder";
 export { default as MeshBuilder } from "./core/MeshBuilder";
 export { default as Viewport, ViewportMode } from "./core/Viewport";
 export { default as GFXRenderTarget } from "./core/GFXRenderTarget";
+export { default as GFXFont } from "./core/GFXFont";
 export type { GFXRenderTargetInterface } from "./core/GFXRenderTarget";
 export {
   getRadians,
@@ -23,4 +24,4 @@ export {
   getDefaultMetallicRoughnessColor,
 } from "./core/Utils";
 
-export { defaultShader, fullscreenQuadShader, meshShader } from "./shaders/Shaders";
+export { defaultShader, fullscreenQuadShader, meshShader, textShader } from "./shaders/Shaders";
